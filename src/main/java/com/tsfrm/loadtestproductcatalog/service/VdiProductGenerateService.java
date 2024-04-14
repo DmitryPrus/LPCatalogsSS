@@ -30,7 +30,6 @@ public class VdiProductGenerateService {
 
     private static final Logger log = LogManager.getLogger(VdiProductGenerateService.class);
 
-
     {
         log.info("Initialization started. Don't run your test");
         random = new Random();
@@ -105,7 +104,7 @@ public class VdiProductGenerateService {
     public List<VdiProductsRemove> removeProducts(int numberToRemove, List<String> productIds) {
         var resultList = new ArrayList<VdiProductsRemove>();
         for (int i = 0; i < numberToRemove; i++) {
-            var productId = productIds.get(random.nextInt(productIds.size()));
+            var productId = productIds.get(i);
             resultList.add(new VdiProductsRemove(productId));
         }
         return resultList;
@@ -116,7 +115,7 @@ public class VdiProductGenerateService {
         var listToUpdate = new ArrayList<VdiProduct>();
 
         for (int i = 0; i < numberToUpdate; i++) {
-            var productId = productIds.get(random.nextInt(productIds.size()));
+            var productId = productIds.get(i);
             var pe = productRepository.findById(productId);
             if (pe == null) continue;
 
