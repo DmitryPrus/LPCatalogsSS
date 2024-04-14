@@ -6,6 +6,7 @@ import com.tsfrm.loadtestproductcatalog.repository.JdbcConfig;
 import com.tsfrm.loadtestproductcatalog.repository.OrgRepository;
 import com.tsfrm.loadtestproductcatalog.repository.ProductRepository;
 import com.tsfrm.loadtestproductcatalog.service.exception.ValidationException;
+import lombok.Getter;
 import lombok.NonNull;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -22,7 +23,9 @@ public class VdiProductGenerateService {
     Random random;
     ProductRepository productRepository;
     OrgRepository orgRepository;
+    @Getter
     List<OrgEntity> allOrgs;
+    @Getter
     List<String> allProductIds;
 
     private static final Logger log = LogManager.getLogger(VdiProductGenerateService.class);
