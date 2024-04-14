@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA testproduct</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<h1>Load test product catalogs</h1>
+
+<form id="submitForm">
+    <div>
+        <label for="operators">How many Operators run for the test:</label>
+        <input type="number" id="operators" name="operators" required>
+    </div>
+    <div>
+        <label for="locations">How many locations per operator:</label>
+        <input type="number" id="locations" name="locations" required>
+    </div>
+    <div>
+        <label for="newProducts">How many products New:</label>
+        <input type="number" id="newProducts" name="newProducts" required>
+    </div>
+    <div>
+        <label for="productsToDelete">How many products Delete:</label>
+        <input type="number" id="productsToDelete" name="productsToDelete" required>
+    </div>
+    <div>
+        <label for="productsToUpdate">How many products Update:</label>
+        <input type="number" id="productsToUpdate" name="productsToUpdate" required>
+    </div>
+    <button type="submit">Submit</button>
+    <div id="resultWindow"></div>
+</form>
+
+<script src="script.js"></script>
+</body>
+</html>

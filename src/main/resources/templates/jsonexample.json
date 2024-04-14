@@ -1,0 +1,640 @@
+{
+  "vdiHeader": {
+    "vdiVersion": "1.0",
+    "vdiType": "Type",
+    "providerName": "Provider",
+    "partnerUid": "Partner UID",
+    "applicationId": "Application ID",
+    "operatorId": "Operator ID",
+    "requestId": "Request ID",
+    "correlationId": "Correlation ID",
+    "transactionId": "Transaction ID",
+    "transactionDtm": "2024-02-18T11:07:19.5666342+03:00"
+  },
+  "mmsPRODUCTS": [
+    {
+      "marketId": "Market ID 1",
+      "catalogType": "Partial",
+      "productsRemove": [
+        {
+          "productId": "Product ID Remove 1"
+        },
+        {
+          "productId": "Product ID Remove 2"
+        }
+      ],
+      "productsUpdate": [
+        {
+          "productId": "Product ID Update 1",
+          "productCode": "Product Code Update 1",
+          "productName": "Product Name Update 1",
+          "shortProductName": "Short Product Name Update 1",
+          "categoryCode": "Category Code Update 1",
+          "categoryName": "Category Name Update 1",
+          "cost": 79.31716669871665,
+          "price": 32.12218847761105,
+          "lastChangeDtm": "2024-02-18T11:07:19.5686393+03:00",
+          "minQuantity": 6,
+          "maxQuantity": 7,
+          "menuName": "Menu Name Update 1",
+          "subMenuName": "Sub Menu Name Update 1",
+          "productImage": "Product Image Update 1",
+          "productSKUs": [
+            {
+              "sku": "SKU 1"
+            },
+            {
+              "sku": "SKU 2"
+            }
+          ],
+          "productAttributes": [
+            {
+              "attribute": "Attribute 1"
+            },
+            {
+              "attribute": "Attribute 2"
+            },
+            {
+              "attribute": "Attribute 3"
+            }
+          ],
+          "barCodes": [
+            {
+              "code": "Bar Code 1"
+            }
+          ],
+          "taxes": [
+            {
+              "taxId": "Tax ID 1",
+              "taxName": "Tax Name 1",
+              "taxRate": 0.25027202056475195,
+              "taxValue": 6.365059814622269,
+              "taxCount": 3,
+              "taxTotal": 47.46934036261378,
+              "includedInPrice": true
+            }
+          ],
+          "fees": [
+            {
+              "feeId": "Fee ID 1",
+              "feeName": "Fee Name 1",
+              "feeCount": 3,
+              "feeValue": 4.824124806266552,
+              "feeTotal": 19.99574818914892
+            },
+            {
+              "feeId": "Fee ID 2",
+              "feeName": "Fee Name 2",
+              "feeCount": 1,
+              "feeValue": 9.956513495582604,
+              "feeTotal": 73.1726601469472
+            },
+            {
+              "feeId": "Fee ID 3",
+              "feeName": "Fee Name 3",
+              "feeCount": 4,
+              "feeValue": 2.1087273544847687,
+              "feeTotal": 84.07510954411433
+            }
+          ],
+          "nutritions": [
+            {
+              "nutritionName": "Nutrition ID 1",
+              "nutritionUnit": "Nutrition Name 1",
+              "nutritionValue": "26.05993991931037",
+              "nutritions": null
+            }
+          ]
+        },
+        {
+          "productId": "Product ID Update 2",
+          "productCode": "Product Code Update 2",
+          "productName": "Product Name Update 2",
+          "shortProductName": "Short Product Name Update 2",
+          "categoryCode": "Category Code Update 2",
+          "categoryName": "Category Name Update 2",
+          "cost": 93.18930618134212,
+          "price": 94.42588013860258,
+          "lastChangeDtm": "2024-02-18T11:07:19.571639+03:00",
+          "minQuantity": 9,
+          "maxQuantity": 11,
+          "menuName": "Menu Name Update 2",
+          "subMenuName": "Sub Menu Name Update 2",
+          "productImage": "Product Image Update 2",
+          "productSKUs": [
+            {
+              "sku": "SKU 1"
+            },
+            {
+              "sku": "SKU 2"
+            },
+            {
+              "sku": "SKU 3"
+            }
+          ],
+          "productAttributes": [
+            {
+              "attribute": "Attribute 1"
+            },
+            {
+              "attribute": "Attribute 2"
+            }
+          ],
+          "barCodes": [
+            {
+              "code": "Bar Code 1"
+            }
+          ],
+          "taxes": [
+            {
+              "taxId": "Tax ID 1",
+              "taxName": "Tax Name 1",
+              "taxRate": 0.704939724081416,
+              "taxValue": 7.196034394339222,
+              "taxCount": 4,
+              "taxTotal": 67.66631779760279,
+              "includedInPrice": false
+            }
+          ],
+          "fees": [
+            {
+              "feeId": "Fee ID 1",
+              "feeName": "Fee Name 1",
+              "feeCount": 2,
+              "feeValue": 7.09597383440377,
+              "feeTotal": 76.50405293554218
+            },
+            {
+              "feeId": "Fee ID 2",
+              "feeName": "Fee Name 2",
+              "feeCount": 0,
+              "feeValue": 7.053504525880784,
+              "feeTotal": 72.96727027310332
+            },
+            {
+              "feeId": "Fee ID 3",
+              "feeName": "Fee Name 3",
+              "feeCount": 0,
+              "feeValue": 3.32404646813142,
+              "feeTotal": 56.84264370780044
+            }
+          ],
+          "nutritions": [
+            {
+              "nutritionName": "Nutrition ID 1",
+              "nutritionUnit": "Nutrition Name 1",
+              "nutritionValue": "0.26236035683031567",
+              "nutritions": null
+            }
+          ]
+        },
+        {
+          "productId": "Product ID Update 3",
+          "productCode": "Product Code Update 3",
+          "productName": "Product Name Update 3",
+          "shortProductName": "Short Product Name Update 3",
+          "categoryCode": "Category Code Update 3",
+          "categoryName": "Category Name Update 3",
+          "cost": 33.88002096554511,
+          "price": 47.66429646174396,
+          "lastChangeDtm": "2024-02-18T11:07:19.571639+03:00",
+          "minQuantity": 0,
+          "maxQuantity": 1,
+          "menuName": "Menu Name Update 3",
+          "subMenuName": "Sub Menu Name Update 3",
+          "productImage": "Product Image Update 3",
+          "productSKUs": [
+            {
+              "sku": "SKU 1"
+            },
+            {
+              "sku": "SKU 2"
+            }
+          ],
+          "productAttributes": [
+            {
+              "attribute": "Attribute 1"
+            },
+            {
+              "attribute": "Attribute 2"
+            }
+          ],
+          "barCodes": [
+            {
+              "code": "Bar Code 1"
+            }
+          ],
+          "taxes": [
+            {
+              "taxId": "Tax ID 1",
+              "taxName": "Tax Name 1",
+              "taxRate": 0.24279541713274166,
+              "taxValue": 7.217781974061945,
+              "taxCount": 1,
+              "taxTotal": 92.17880204475703,
+              "includedInPrice": false
+            }
+          ],
+          "fees": [
+            {
+              "feeId": "Fee ID 1",
+              "feeName": "Fee Name 1",
+              "feeCount": 0,
+              "feeValue": 0.44877227683146614,
+              "feeTotal": 33.588809452236625
+            }
+          ],
+          "nutritions": [
+            {
+              "nutritionName": "Nutrition ID 1",
+              "nutritionUnit": "Nutrition Name 1",
+              "nutritionValue": "72.6694029486738",
+              "nutritions": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "marketId": "Market ID 2",
+      "catalogType": "Partial",
+      "productsRemove": [
+        {
+          "productId": "Product ID Remove 1"
+        }
+      ],
+      "productsUpdate": [
+        {
+          "productId": "Product ID Update 1",
+          "productCode": "Product Code Update 1",
+          "productName": "Product Name Update 1",
+          "shortProductName": "Short Product Name Update 1",
+          "categoryCode": "Category Code Update 1",
+          "categoryName": "Category Name Update 1",
+          "cost": 78.91087716036506,
+          "price": 44.858469681055105,
+          "lastChangeDtm": "2024-02-18T11:07:19.571639+03:00",
+          "minQuantity": 9,
+          "maxQuantity": 19,
+          "menuName": "Menu Name Update 1",
+          "subMenuName": "Sub Menu Name Update 1",
+          "productImage": "Product Image Update 1",
+          "productSKUs": [
+            {
+              "sku": "SKU 1"
+            },
+            {
+              "sku": "SKU 2"
+            },
+            {
+              "sku": "SKU 3"
+            }
+          ],
+          "productAttributes": [
+            {
+              "attribute": "Attribute 1"
+            }
+          ],
+          "barCodes": [
+            {
+              "code": "Bar Code 1"
+            },
+            {
+              "code": "Bar Code 2"
+            },
+            {
+              "code": "Bar Code 3"
+            }
+          ],
+          "taxes": [
+            {
+              "taxId": "Tax ID 1",
+              "taxName": "Tax Name 1",
+              "taxRate": 0.9304016011571336,
+              "taxValue": 8.89432063639658,
+              "taxCount": 1,
+              "taxTotal": 20.073134474628883,
+              "includedInPrice": true
+            }
+          ],
+          "fees": [
+            {
+              "feeId": "Fee ID 1",
+              "feeName": "Fee Name 1",
+              "feeCount": 4,
+              "feeValue": 0.8082006828168686,
+              "feeTotal": 35.19986691887178
+            },
+            {
+              "feeId": "Fee ID 2",
+              "feeName": "Fee Name 2",
+              "feeCount": 0,
+              "feeValue": 2.3443376451616316,
+              "feeTotal": 25.126781686283007
+            },
+            {
+              "feeId": "Fee ID 3",
+              "feeName": "Fee Name 3",
+              "feeCount": 2,
+              "feeValue": 9.334283689154715,
+              "feeTotal": 64.46591004211814
+            }
+          ],
+          "nutritions": [
+            {
+              "nutritionName": "Nutrition ID 1",
+              "nutritionUnit": "Nutrition Name 1",
+              "nutritionValue": "11.69437030761199",
+              "nutritions": null
+            },
+            {
+              "nutritionName": "Nutrition ID 2",
+              "nutritionUnit": "Nutrition Name 2",
+              "nutritionValue": "18.430630674729752",
+              "nutritions": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "marketId": "Market ID 3",
+      "catalogType": "Full",
+      "productsRemove": [],
+      "productsUpdate": [
+        {
+          "productId": "Product ID Update 1",
+          "productCode": "Product Code Update 1",
+          "productName": "Product Name Update 1",
+          "shortProductName": "Short Product Name Update 1",
+          "categoryCode": "Category Code Update 1",
+          "categoryName": "Category Name Update 1",
+          "cost": 31.04292079403148,
+          "price": 26.970423808692313,
+          "lastChangeDtm": "2024-02-18T11:07:19.5726406+03:00",
+          "minQuantity": 6,
+          "maxQuantity": 7,
+          "menuName": "Menu Name Update 1",
+          "subMenuName": "Sub Menu Name Update 1",
+          "productImage": "Product Image Update 1",
+          "productSKUs": [
+            {
+              "sku": "SKU 1"
+            },
+            {
+              "sku": "SKU 2"
+            },
+            {
+              "sku": "SKU 3"
+            }
+          ],
+          "productAttributes": [
+            {
+              "attribute": "Attribute 1"
+            },
+            {
+              "attribute": "Attribute 2"
+            },
+            {
+              "attribute": "Attribute 3"
+            }
+          ],
+          "barCodes": [
+            {
+              "code": "Bar Code 1"
+            }
+          ],
+          "taxes": [
+            {
+              "taxId": "Tax ID 1",
+              "taxName": "Tax Name 1",
+              "taxRate": 0.8455349790243818,
+              "taxValue": 1.1633437028273474,
+              "taxCount": 3,
+              "taxTotal": 61.91866748925157,
+              "includedInPrice": true
+            }
+          ],
+          "fees": [
+            {
+              "feeId": "Fee ID 1",
+              "feeName": "Fee Name 1",
+              "feeCount": 3,
+              "feeValue": 0.3574080173773353,
+              "feeTotal": 48.43724000012406
+            }
+          ],
+          "nutritions": [
+            {
+              "nutritionName": "Nutrition ID 1",
+              "nutritionUnit": "Nutrition Name 1",
+              "nutritionValue": "88.15630227452277",
+              "nutritions": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "marketId": "Market ID 4",
+      "catalogType": "Full",
+      "productsRemove": [
+        {
+          "productId": "Product ID Remove 1"
+        }
+      ],
+      "productsUpdate": [
+        {
+          "productId": "Product ID Update 1",
+          "productCode": "Product Code Update 1",
+          "productName": "Product Name Update 1",
+          "shortProductName": "Short Product Name Update 1",
+          "categoryCode": "Category Code Update 1",
+          "categoryName": "Category Name Update 1",
+          "cost": 78.70675262027316,
+          "price": 21.231410537136064,
+          "lastChangeDtm": "2024-02-18T11:07:19.5726406+03:00",
+          "minQuantity": 5,
+          "maxQuantity": 24,
+          "menuName": "Menu Name Update 1",
+          "subMenuName": "Sub Menu Name Update 1",
+          "productImage": "Product Image Update 1",
+          "productSKUs": [
+            {
+              "sku": "SKU 1"
+            },
+            {
+              "sku": "SKU 2"
+            }
+          ],
+          "productAttributes": [
+            {
+              "attribute": "Attribute 1"
+            },
+            {
+              "attribute": "Attribute 2"
+            }
+          ],
+          "barCodes": [
+            {
+              "code": "Bar Code 1"
+            },
+            {
+              "code": "Bar Code 2"
+            }
+          ],
+          "taxes": [
+            {
+              "taxId": "Tax ID 1",
+              "taxName": "Tax Name 1",
+              "taxRate": 0.20965322187770863,
+              "taxValue": 6.79367273484825,
+              "taxCount": 2,
+              "taxTotal": 53.6688082080893,
+              "includedInPrice": true
+            }
+          ],
+          "fees": [
+            {
+              "feeId": "Fee ID 1",
+              "feeName": "Fee Name 1",
+              "feeCount": 2,
+              "feeValue": 9.25871676339052,
+              "feeTotal": 60.083394061568285
+            },
+            {
+              "feeId": "Fee ID 2",
+              "feeName": "Fee Name 2",
+              "feeCount": 4,
+              "feeValue": 9.624895842414995,
+              "feeTotal": 93.56118453269737
+            },
+            {
+              "feeId": "Fee ID 3",
+              "feeName": "Fee Name 3",
+              "feeCount": 4,
+              "feeValue": 3.591120659416378,
+              "feeTotal": 68.87823072465395
+            }
+          ],
+          "nutritions": [
+            {
+              "nutritionName": "Nutrition ID 1",
+              "nutritionUnit": "Nutrition Name 1",
+              "nutritionValue": "71.45813804586115",
+              "nutritions": null
+            },
+            {
+              "nutritionName": "Nutrition ID 2",
+              "nutritionUnit": "Nutrition Name 2",
+              "nutritionValue": "10.958261889546572",
+              "nutritions": null
+            }
+          ]
+        },
+        {
+          "productId": "Product ID Update 2",
+          "productCode": "Product Code Update 2",
+          "productName": "Product Name Update 2",
+          "shortProductName": "Short Product Name Update 2",
+          "categoryCode": "Category Code Update 2",
+          "categoryName": "Category Name Update 2",
+          "cost": 86.1869809263832,
+          "price": 93.01917398484846,
+          "lastChangeDtm": "2024-02-18T11:07:19.5726406+03:00",
+          "minQuantity": 2,
+          "maxQuantity": 8,
+          "menuName": "Menu Name Update 2",
+          "subMenuName": "Sub Menu Name Update 2",
+          "productImage": "Product Image Update 2",
+          "productSKUs": [
+            {
+              "sku": "SKU 1"
+            },
+            {
+              "sku": "SKU 2"
+            }
+          ],
+          "productAttributes": [
+            {
+              "attribute": "Attribute 1"
+            },
+            {
+              "attribute": "Attribute 2"
+            },
+            {
+              "attribute": "Attribute 3"
+            }
+          ],
+          "barCodes": [
+            {
+              "code": "Bar Code 1"
+            },
+            {
+              "code": "Bar Code 2"
+            },
+            {
+              "code": "Bar Code 3"
+            }
+          ],
+          "taxes": [
+            {
+              "taxId": "Tax ID 1",
+              "taxName": "Tax Name 1",
+              "taxRate": 0.6131428451429953,
+              "taxValue": 1.0241844550534485,
+              "taxCount": 3,
+              "taxTotal": 81.67905822674687,
+              "includedInPrice": true
+            },
+            {
+              "taxId": "Tax ID 2",
+              "taxName": "Tax Name 2",
+              "taxRate": 0.3234841086592327,
+              "taxValue": 9.745573093045984,
+              "taxCount": 2,
+              "taxTotal": 34.563506225585996,
+              "includedInPrice": true
+            }
+          ],
+          "fees": [
+            {
+              "feeId": "Fee ID 1",
+              "feeName": "Fee Name 1",
+              "feeCount": 3,
+              "feeValue": 0.8489572945211921,
+              "feeTotal": 38.85721922082113
+            },
+            {
+              "feeId": "Fee ID 2",
+              "feeName": "Fee Name 2",
+              "feeCount": 3,
+              "feeValue": 1.34109187177894,
+              "feeTotal": 45.33847072466316
+            }
+          ],
+          "nutritions": [
+            {
+              "nutritionName": "Nutrition ID 1",
+              "nutritionUnit": "Nutrition Name 1",
+              "nutritionValue": "71.6920064162091",
+              "nutritions": null
+            },
+            {
+              "nutritionName": "Nutrition ID 2",
+              "nutritionUnit": "Nutrition Name 2",
+              "nutritionValue": "40.68967964271165",
+              "nutritions": null
+            },
+            {
+              "nutritionName": "Nutrition ID 3",
+              "nutritionUnit": "Nutrition Name 3",
+              "nutritionValue": "59.95254391248959",
+              "nutritions": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

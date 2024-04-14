@@ -1,0 +1,125 @@
+{"vdiHeader": {
+"vdiVersion": "2.0",
+"vdiType": "mmsPRODUCTS",
+"providerName": "Provider", // set of provider names >>>>>>>>>>>> THIS NEEDS TO MATCH A PROVIDER SETUP IN ADM. COULD YOU MAKE IT CONFIGURABLE? SEE: SELECT NAME FROM VDI2PROVIDER
+"partnerUid": "Partner UID", // set of these values >>>>>>>>>>>> PLEASE CONSULT ANTON. SEE SPEC: GUID value unique for the pair of partners, but the same for all messages between these partners.
+"applicationId": "Application ID", // ‘365’ ? >>>>>>>>>>>> '365' IS OKAY
+"operatorId": "Operator ID",  // set of .. >>>>>>>>>>>> SEE: SELECT USERKEY FROM VDIUSERKEY K INNER JOIN VDI2PROVIDER P ON K.VDIPROVIDER = P.ID WHERE K.ORG IS NOT NULL
+"requestId": "Request ID",  //  I supose generated, or provide set >>>>>>>>>> PLEASE CONSULT ANTON. SEE SPEC: GUID value unique for the pair of partners, but the same for all messages between these partners.
+"correlationId": "Correlation ID", // UUID.randomUUID().toString()
+"transactionId": "Transaction ID", // UUID.randomUUID().toString()
+"transactionDtm": "2024-02-18T11:07:19.5666342+03:00"  // OffsetDateTime.now()
+},
+"mmsPRODUCTS": [
+{
+"marketId": "Market ID 1", // ? >>>>>>>>>>>> SEE (NOTE THAT THE LOCATION MUST BE UNDER THE OPERATORID NOTED IN THE HEADER) SELECT USERKEY FROM VDIUSERKEY K INNER JOIN VDI2PROVIDER P ON K.VDIPROVIDER = P.ID WHERE K.LOCATION IS NOT NULL
+"catalogType": "Partial",  // ? >>>>>>>>>>>> MUST BE CONFIGURABLE TO PARTIAL OR FULL PARTIALS ARE NEW OR MODIFIED EXISTING PRODUCTS
+
+// where can I get list of productIds, are possible to remove. Provide pls set of values or place where  I can extract it. >>>>>>>>>>>>>> I PRESUME THESE ARE USERKEYS OR WHAT IS SENT OUT FOR AN ITEM IN THE SALE MESSAGE (PLEASE VERIFY THIS). PLEASE CHECK THIS. DATA SHOULD BE PRODUCT.USERKEY
+
+"productsRemove": [
+{
+"productId": "Product ID Remove 1"  // ?
+},
+{
+"productId": "Product ID Remove 2"  // ?
+}
+],
+
+// All data about prouct I can Extract randomly from select * from product limit 100;  >>>>>>>>>> KEEP IN MIND THERE IS A MASTER PRODUCT CATALOG AND PRODUCTS IN THAT CATALOG GET EXTENDED TO THE LOCATION SO YOU MUST USE THE JOINED VERSION FOR A LOCATION TO GET A LIST: SELECT * FROM PRODUCT P INNER JOIN PRODUCTLOCATION PL ON P.ID = PL.PRODUCT WHERE PL.LOCATION = 'fe73f6067326ebfb062a0e2967063109'
+// But maybe you’d like to see only special set of products. Let me know. >>>>>>>>>>>>> YES, WHEN TESTING PARTIALS WE'D LIKE TO SEE A SPECIAL LIST. WE'D LILE TO UPDATE OR DELETE
+// As I understand right my app should not create nuew products, just update existing. Right ?  >>>>>>>>>> WE SHOULD BE ABLE TO CREATE A FULL NEW LIST AND UPDATE AND DELETE
+
+"productsUpdate": [
+{
+"productId": "Product ID Update 1",
+"productCode": "Product Code Update 1", // this is the same as scancode? >>>>>>>>>>>> NEED ANTONS GUIDANCE
+"productName": "Product Name Update 1",
+"shortProductName": "Short Product Name Update 1",
+"categoryCode": "Category Code Update 1", // where can I get it? >>>>>>>>>>> SEE PRODUCT.CATEGORY1, 2 AND 3
+"categoryName": "Category Name Update 1", // where can I get it? >>>>>>>>>>> WE ONLY USE A CODE
+"cost": 79.31716669871665,
+"price": 32.12218847761105,
+"lastChangeDtm": "2024-02-18T11:07:19.5686393+03:00", // lastUpdated?
+"minQuantity": 6, //minstock column? >>>>>>>>>>>> PRODUCTLOCATION.MINSTOCK
+"maxQuantity": 7, // maxstock column? >>>>>>>>>>>> PRODUCTLOCATION.MAXSTOCK
+"menuName": "Menu Name Update 1",  // ? >>>>>>>>>>>> NEED TO REVIEW
+"subMenuName": "Sub Menu Name Update 1",  // ? >>>>>>>>>>>> NEED TO REVIEW
+"productImage": "Product Image Update 1",  // ? >>>>>>>>>>>> NOT REQUIRED
+"productSKUs": [  // ? where can I get It ? >>>>>>>>>>>> SKU OR BARCODE?
+{
+"sku": "SKU 1"
+},
+{
+"sku": "SKU 2"
+}
+],
+// Where can I retrive list of productAttributes?  >>>>>>>>>>> PER THE SPEC I AM NOT SURE HOW THIS DIFFERS FROM PRODUCT.CATEGORY PLEASE CONSULT ANTON. COULD THESE BE ADDITIONAL CATEGORIES (I.E. PRODUCT.CATEGORY2 AND 3)?
+
+"productAttributes": [
+{
+"attribute": "Attribute 1"
+},
+{
+"attribute": "Attribute 2"
+},
+{
+"attribute": "Attribute 3"
+}
+],
+
+// Where can I retrive list of barCodes?   select * from vdi_import_product_barcode ?  >>>>>>>>>>> SEE THE UPC TABLE: SELECT * FROM UPC WHERE ORG = '08dd1c6808264e7ca7e223f970ed9208'
+
+"barCodes": [
+{
+"code": "Bar Code 1"
+}
+],
+// Where can I retrive list of taxes? select p.TAX from product p limit 100; ? >>>>>>>>>>> THIS IS CORRECT. WE SUPPORT 4 TAXES
+// what Can I do if tax null or empty. There are several columns of taxes >>>>>>>>>>> WE WANT TO TEST THE CASE WHERE THERE ARE NOT TAXES AS WELL
+"taxes": [
+{
+"taxId": "Tax ID 1",
+"taxName": "Tax Name 1",
+"taxRate": 0.25027202056475195, // I understand that generated value must include only 2 symbols after ‘.’ Like 0.25 . It will be fixed.
+"taxValue": 6.365059814622269,
+"taxCount": 3,
+"taxTotal": 47.46934036261378,
+"includedInPrice": true
+}
+],
+// Where can I retrive list of fees? >>>>>>>>>> YOU CAN MAKE RANDOMLY THESE UP FOR NOW. CALL THEM 'ADDITIONAL TAX' (6%) AND 'DEPOSIT' ($0.10). SEE THE VDIMAPPING TABLE FOR SAMPLE NAMES
+"fees": [
+{
+"feeId": "Fee ID 1",
+"feeName": "Fee Name 1",
+"feeCount": 3,
+"feeValue": 4.824124806266552,
+"feeTotal": 19.99574818914892
+},
+{
+"feeId": "Fee ID 2",
+"feeName": "Fee Name 2",
+"feeCount": 1,
+"feeValue": 9.956513495582604,
+"feeTotal": 73.1726601469472
+},
+{
+"feeId": "Fee ID 3",
+"feeName": "Fee Name 3",
+"feeCount": 4,
+"feeValue": 2.1087273544847687,
+"feeTotal": 84.07510954411433
+}
+],
+// Where can I retrive list of nutritions? select * from productnutrition pn ? >>>>>>>>>>> NUTRITION DATA IS NOT NECESSARY RIGHT NOW
+// I see in this table missing name and etc.
+"nutritions": [
+{
+"nutritionName": "Nutrition ID 1",
+"nutritionUnit": "Nutrition Name 1",
+"nutritionValue": "26.05993991931037",
+"nutritions": null
+}
+]
+}
