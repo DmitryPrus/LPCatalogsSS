@@ -10,6 +10,7 @@ import java.util.*;
 
 public class OrgRepository extends BaseRepository<OrgEntity> {
 
+    public int locationsMinimum = System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM") != null ? Integer.parseInt(System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM")) : 3;
     private static final Logger log = LogManager.getLogger(OrgRepository.class);
 
     public OrgRepository(JdbcConfig config) {
@@ -25,7 +26,8 @@ public class OrgRepository extends BaseRepository<OrgEntity> {
 
             orgList.removeIf(org -> {
                 var locations = org.getLocations();
-                return locations == null || locations.isEmpty();
+                return locations == null ||
+                        locations.size() < locationsMinimum;
             });
             log.info("Cleared all organizations having no binded locations");
 
@@ -125,23 +127,7 @@ public class OrgRepository extends BaseRepository<OrgEntity> {
      * not used
      */
     @Override
-    public OrgEntity findById(String id) throws SQLException {
-        OrgEntity org = null;
-        var query = "SELECT * FROM vdiuserkey WHERE vdiuserkey.ORG = ?";
-
-        try (
-                var connection = DriverManager.getConnection(config.dbUrl, config.dbUser, config.dbPassword);
-                var preparedStatement = connection.prepareStatement(query)
-        ) {
-            preparedStatement.setString(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    org = new OrgEntity();
-                    org.setOrg(resultSet.getString("org"));
-                    org.setUserKey(resultSet.getString("userkey"));
-                }
-            }
-        }
-        return org;
+    public OrgEntity findById(String id) {
+        return null;
     }
 }
