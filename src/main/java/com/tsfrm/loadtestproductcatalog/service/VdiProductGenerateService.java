@@ -13,10 +13,7 @@ import org.apache.log4j.Logger;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -43,9 +40,10 @@ public class VdiProductGenerateService {
         if (request.getOperators() > allOrgs.size())
             throw new ValidationException(String.format("Request validation failed. Too many operators. Requested: %d; available: %d", request.getOperators(), allOrgs.size()));
 
+        Collections.shuffle(allOrgs);
         var orgs = new ArrayList<OrgEntity>();
         for (int i = 0; i < request.getOperators(); i++) {
-            orgs.add(allOrgs.get(random.nextInt(allOrgs.size())));
+            orgs.add(allOrgs.get(i));
         }
 
         isValid(request, orgs);
@@ -57,10 +55,11 @@ public class VdiProductGenerateService {
         for (OrgEntity o : orgs) {
             var vpt = new VdiProductsTransaction();
             var marketProductList = new ArrayList<VdiMarketProduct>();
-
+            var locations = o.getLocations();
+            Collections.shuffle(locations);
             //LOCATIONS per operator
             for (int i = 0; i < request.getLocations(); i++) {
-                var location = o.getLocations().get(random.nextInt(o.getLocations().size()));
+                var location = locations.get(i);
                 var productsToRemove = removeProducts(request.getProductsToDelete(), location.getProductIds());
                 var productsToCreate = generateProduct(request.getNewProducts());
                 var productsToUpdate = updateProducts(request.getProductsToUpdate(), location.getProductIds());
@@ -102,6 +101,7 @@ public class VdiProductGenerateService {
 
 
     public List<VdiProductsRemove> removeProducts(int numberToRemove, List<String> productIds) {
+        Collections.shuffle(productIds);
         var resultList = new ArrayList<VdiProductsRemove>();
         for (int i = 0; i < numberToRemove; i++) {
             var productId = productIds.get(i);
