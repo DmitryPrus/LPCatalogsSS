@@ -1,24 +1,12 @@
 package com.tsfrm.loadtestproductcatalog;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.tsfrm.loadtestproductcatalog.domain.entity.LocationEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.VdiProductEntity;
-import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.BaseJsonEntity;
-import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.LocationJsonEntity;
-import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.OrgJsonEntity;
-import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.VdiProductJsonEntity;
 import com.tsfrm.loadtestproductcatalog.repository.JdbcConfig;
 import com.tsfrm.loadtestproductcatalog.repository.JsonStorageRepository;
-import com.tsfrm.loadtestproductcatalog.repository.ProductRepository;
-import com.tsfrm.loadtestproductcatalog.service.JsonEntityConverter;
-import com.tsfrm.loadtestproductcatalog.service.VdiProductGenerateService;
+import com.tsfrm.loadtestproductcatalog.service.RunTestService;
 
-import java.io.File;
-import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,8 +21,14 @@ public class JsonFilesGenerator {
 
 
     public static void main(String[] args) throws SQLException {
-        JsonFilesGenerator jfg = new JsonFilesGenerator();
-        jfg.readDatabaseDataAndStoreToJson();
+//        logic to write JSON file from database
+//        JsonFilesGenerator jfg = new JsonFilesGenerator();
+//        jfg.readDatabaseDataAndStoreToJson();
+        String url = System.getenv("DESTINATION_URL") != null ? System.getenv("DESTINATION_URL") : "http://localhost:8082/mmsproducts/1/localtest";
+        Integer threadsQuantity = System.getenv("OUTBOUND_THREADS_QUANTITY") != null ? Integer.parseInt(System.getenv("OUTBOUND_THREADS_QUANTITY")) : 20;
+        RunTestService rt = new RunTestService(url, threadsQuantity);
+        System.out.println();
+
     }
 
     private void readDatabaseDataAndStoreToJson() throws SQLException {
@@ -48,9 +42,20 @@ public class JsonFilesGenerator {
             return locations == null ||
                     locations.size() < locationsMinimum;
         });
+
+
+        var locationProductMap = jsonRepository.getLocationProductMap();
+        for (OrgEntity o : orgList){
+            for (LocationEntity l : o.getLocations()){
+                locationProductMap.putIfAbsent(l.getLocationId(), new HashSet<>());
+                locationProductMap.get(l.getLocationId()).addAll(findAllByProductIds(l.getProductIds()));
+            }
+        }
+
         System.out.println("Cleared all organizations having no binded locations");
-        jsonRepository.setOrgs(orgList);
+        jsonRepository.setOrgs(new HashSet<>(orgList));
         jsonRepository.writeProcessing();
+        System.out.println("Json fillment processing finished");
     }
 
 

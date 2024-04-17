@@ -3,13 +3,14 @@ package com.tsfrm.loadtestproductcatalog.service;
 import com.tsfrm.loadtestproductcatalog.domain.*;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
 import com.tsfrm.loadtestproductcatalog.repository.JdbcConfig;
+import com.tsfrm.loadtestproductcatalog.repository.JsonStorageRepository;
 import com.tsfrm.loadtestproductcatalog.repository.OrgRepository;
 import com.tsfrm.loadtestproductcatalog.repository.ProductRepository;
 import com.tsfrm.loadtestproductcatalog.service.exception.ValidationException;
 import lombok.Getter;
 import lombok.NonNull;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,17 +28,20 @@ public class VdiProductGenerateService {
     List<OrgEntity> allOrgs;
     @Getter
     List<String> allProductIds;
-
+    private JsonStorageRepository jsonStorageRepository;
     private static final Logger log = LogManager.getLogger(VdiProductGenerateService.class);
 
-    {
+    public VdiProductGenerateService(JsonStorageRepository jsonStorageRepository) {
+        this.jsonStorageRepository = jsonStorageRepository;
+
         log.info("Initialization started. Don't run your test");
         random = new Random();
-        productRepository = new ProductRepository(new JdbcConfig());
-        orgRepository = new OrgRepository(new JdbcConfig());
+        productRepository = new ProductRepository(new JdbcConfig(), jsonStorageRepository);
+        orgRepository = new OrgRepository(new JdbcConfig(), jsonStorageRepository);
         updateAllOrgsAndProducts();
         log.info("Initialization completed. Extracted " + allOrgs.size() + " orgs for VDI2");
     }
+
 
     public List<VdiProductsTransaction> generateMessages(TestFormData request) {
         if (request.getOperators() > allOrgs.size())
@@ -76,7 +80,7 @@ public class VdiProductGenerateService {
         }
 
         //TODO replace this method!
-        CompletableFuture.runAsync(this::updateAllOrgsAndProducts);
+        //CompletableFuture.runAsync(this::updateAllOrgsAndProducts);
         return messages;
     }
 

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -36,4 +37,17 @@ public class VdiProductJsonEntity extends BaseJsonEntity {
     private LocalDateTime datecreated;
     private LocalDateTime lastupdated;
     private String location;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        VdiProductJsonEntity that = (VdiProductJsonEntity) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

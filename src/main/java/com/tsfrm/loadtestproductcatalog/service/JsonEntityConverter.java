@@ -8,7 +8,9 @@ import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.OrgJsonEntity;
 import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.VdiProductJsonEntity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class JsonEntityConverter {
 
@@ -73,7 +75,8 @@ public class JsonEntityConverter {
         return new LocationJsonEntity(location.getLocationId(), ortId);
     }
 
-    public LocationEntity jsonToLocation(LocationJsonEntity location, List<VdiProductEntity> products) {
+    public LocationEntity jsonToLocation(LocationJsonEntity location, Set<VdiProductEntity> products) {
+        if (products == null) return new LocationEntity(location.getLocationId(), new ArrayList<>());
         var ids = products.stream().map(VdiProductEntity::getId).toList();
         return new LocationEntity(location.getLocationId(), ids);
     }
@@ -82,8 +85,8 @@ public class JsonEntityConverter {
         return new OrgJsonEntity(org.getOrg(), org.getUserKey());
     }
 
-    public OrgEntity jsonToOrg(OrgJsonEntity org, List<LocationEntity> locations) {
-        return new OrgEntity(org.getOrg(), org.getUserKey(), locations);
+    public OrgEntity jsonToOrg(OrgJsonEntity org, HashSet<LocationEntity> locations) {
+        return new OrgEntity(org.getOrg(), org.getUserKey(), locations.stream().toList());
     }
 
 }

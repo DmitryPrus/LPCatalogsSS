@@ -2,8 +2,9 @@ package com.tsfrm.loadtestproductcatalog.service;
 
 
 import com.tsfrm.loadtestproductcatalog.domain.*;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import com.tsfrm.loadtestproductcatalog.repository.JsonStorageRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.Executors;
 
@@ -16,7 +17,8 @@ public class RunTestService {
     private static final Logger log = LogManager.getLogger(RunTestService.class);
 
     public RunTestService(String httpUrl, Integer threadsQuantity) {
-        this.vdiProductGenerateService = new VdiProductGenerateService();
+        var jsonStorageRepository = new JsonStorageRepository();
+        this.vdiProductGenerateService = new VdiProductGenerateService(jsonStorageRepository);
         this.httpUrl = httpUrl;
         this.threadsQuantity = threadsQuantity;
     }

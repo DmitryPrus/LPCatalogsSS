@@ -17,9 +17,7 @@ import lombok.Setter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class JsonStorageRepository {
 
@@ -27,30 +25,32 @@ public class JsonStorageRepository {
     private final String LOCATIONS_STORAGE = "src/main/resources/storage/location-storage.json";
     private final String ORGS_STORAGE = "src/main/resources/storage/org-storage.json";
 
+    private JsonEntityConverter converter;
+
     @Setter
     @Getter
-    private List<OrgEntity> orgs;
-    private JsonEntityConverter converter;
-    private List<VdiProductEntity> products;
+    private Set<OrgEntity> orgs;
+    @Setter
+    @Getter
+    private Map<String, HashSet<VdiProductEntity>> locationProductMap;
 
 
-    public JsonStorageRepository(){
+    public JsonStorageRepository() {
         this.converter = new JsonEntityConverter();
-        this.products = new ArrayList<>();
-        this.orgs = new ArrayList<>();
+        this.orgs = new HashSet<>();
+        this.locationProductMap = new HashMap<>();
+        readProcessing();
     }
 
 
     public void writeProcessing() {
-        var productJsonList = new ArrayList<VdiProductJsonEntity>();
-        var locationJsonList = new ArrayList<LocationJsonEntity>();
-        var orgJsonList = new ArrayList<OrgJsonEntity>();
+        var productJsonList = new HashSet<VdiProductJsonEntity>();
+        var locationJsonList = new HashSet<LocationJsonEntity>();
+        var orgJsonList = new HashSet<OrgJsonEntity>();
 
         for (OrgEntity org : orgs) {
             for (LocationEntity loc : org.getLocations()) {
-                var productsForLoc = products.stream()
-                        .filter(prod -> loc.getProductIds().contains(prod.getId()))
-                        .toList();
+                var productsForLoc = locationProductMap.get(loc.getLocationId());
                 productsForLoc.forEach(p -> {
                     var productJson = converter.productToJson(p, loc.getLocationId());
                     productJsonList.add(productJson);
@@ -71,26 +71,26 @@ public class JsonStorageRepository {
         var locationsJson = readLocationsJson(LOCATIONS_STORAGE);
         var orgsJson = readOrgsJson(ORGS_STORAGE);
 
-        var locProductMap = new HashMap<String, List<VdiProductEntity>>();
-        var orgLocMap = new HashMap<String, List<LocationEntity>>();
+        var locProductMap = new HashMap<String, HashSet<VdiProductEntity>>();
+        var orgLocMap = new HashMap<String, HashSet<LocationEntity>>();
 
+        productsJson.removeIf(Objects::isNull);
         productsJson.forEach(pj -> {
-            locProductMap.putIfAbsent(pj.getLocation(), new ArrayList<>());
+            locProductMap.putIfAbsent(pj.getLocation(), new HashSet<>());
             locProductMap.get(pj.getLocation()).add(converter.jsonToProduct(pj));
         });
+
         locationsJson.forEach(loc -> {
-            orgLocMap.putIfAbsent(loc.getOrgId(), new ArrayList<>());
-            orgLocMap.get(loc.getOrgId()).add(converter.jsonToLocation(loc, locProductMap.get(loc.getLocationId())));
-        });
-        this.products = productsJson.stream().map(converter::jsonToProduct).toList();
-
-        orgsJson.forEach(o -> {
-            this.orgs.add(converter.jsonToOrg(o, orgLocMap.get(o.getOrg())));
+            var locProducts = locProductMap.get(loc.getLocationId());
+            orgLocMap.putIfAbsent(loc.getOrgId(), new HashSet<>());
+            orgLocMap.get(loc.getOrgId()).add(converter.jsonToLocation(loc, locProducts));
         });
 
+        this.locationProductMap = locProductMap;
+        orgsJson.forEach(o -> this.orgs.add(converter.jsonToOrg(o, orgLocMap.get(o.getOrg()))));
     }
 
-    private void writeJsonFile(List<? extends BaseJsonEntity> data, String filePath) {
+    private void writeJsonFile(Set<? extends BaseJsonEntity> data, String filePath) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
