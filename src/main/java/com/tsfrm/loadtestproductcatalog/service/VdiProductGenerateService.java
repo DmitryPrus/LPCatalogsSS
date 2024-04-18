@@ -2,6 +2,7 @@ package com.tsfrm.loadtestproductcatalog.service;
 
 import com.tsfrm.loadtestproductcatalog.domain.*;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
+import com.tsfrm.loadtestproductcatalog.domain.entity.VdiProductEntity;
 import com.tsfrm.loadtestproductcatalog.repository.JdbcConfig;
 import com.tsfrm.loadtestproductcatalog.repository.JsonStorageRepository;
 import com.tsfrm.loadtestproductcatalog.repository.OrgRepository;
@@ -78,7 +79,6 @@ public class VdiProductGenerateService {
 
 
                 //delete from productLocationMap (needed for transactions)
-
                 jsonStorageRepository.getOrgLocProductMap()
                         .get(o.getOrg())
                         .get(location.getLocationId())
@@ -86,15 +86,25 @@ public class VdiProductGenerateService {
                                 productsToRemove.stream()
                                         .anyMatch(deleteProd -> deleteProd.getProductId().equals(productEntity.getId()))
                         );
-
-
-                //add new products to productLocationMap (needed for transactions)
-                productsToCreate.stream()
-                        .map(pNew -> converter.vdiProductToEntity(pNew, o.getOrg()))
-                        .forEach(vpe -> jsonStorageRepository.getOrgLocProductMap()
-                                .get(o.getOrg())
-                                .get(location.getLocationId()).add(vpe));
             }
+
+            // add newly added products to getOrgLocProductMap in order to fill json database next
+            marketProductList.forEach(product -> {
+                var allProductIds = jsonStorageRepository.getOrgLocProductMap()
+                        .get(o.getOrg())
+                        .get(product.getMarketId())
+                        .stream()
+                        .map(VdiProductEntity::getId)
+                        .collect(Collectors.toSet());
+                var productsToUpdate = product.getProductsUpdate();
+
+                productsToUpdate.stream()
+                        .filter(vp -> !allProductIds.contains(vp.getProductId()))
+                        .map(vp -> converter.vdiProductToEntity(vp, o.getOrg()))
+                        .forEach(jsonStorageRepository.getOrgLocProductMap()
+                                .get(o.getOrg())
+                                .get(product.getMarketId())::add);
+            });
 
             vpt.setVdiHeader(generateHeader(o.getUserKey()));
             vpt.setProducts(marketProductList);
