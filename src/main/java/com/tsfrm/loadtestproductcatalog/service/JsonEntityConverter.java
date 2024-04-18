@@ -1,5 +1,6 @@
 package com.tsfrm.loadtestproductcatalog.service;
 
+import com.tsfrm.loadtestproductcatalog.domain.VdiProduct;
 import com.tsfrm.loadtestproductcatalog.domain.entity.LocationEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.VdiProductEntity;
@@ -7,6 +8,8 @@ import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.LocationJsonEntity;
 import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.OrgJsonEntity;
 import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.VdiProductJsonEntity;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -69,6 +72,34 @@ public class JsonEntityConverter {
         pe.setLastupdated(vp.getLastupdated());
 
         return pe;
+    }
+
+    //TODO доделать трансорматор. посмотреть что из себя представляет оно в БД и на какие поля entity мапится.
+    public VdiProductEntity vdiProductToEntity (VdiProduct prod, String orgId, String LocationId){
+        VdiProductEntity vpe = new VdiProductEntity();
+         vpe.setId(prod.getProductId());
+         vpe.setOrg(orgId);
+         vpe.setName(prod.getProductName());
+         vpe.setShortname(prod.getShortProductName());
+         vpe.setScancode(prod.categ);
+         String upc;
+         String scancode;
+         String category1;
+         String category2;
+         String category3;
+         String status;
+         String userkey;
+         BigDecimal cost;
+         BigDecimal price;
+         BigDecimal tax;
+         BigDecimal tax2;
+         BigDecimal tax3;
+         BigDecimal tax4;
+         int points;
+         String minstock;
+         String maxstock;
+         LocalDateTime datecreated;
+         LocalDateTime lastupdated;
     }
 
     public LocationJsonEntity locationToJson(LocationEntity location, String ortId) {

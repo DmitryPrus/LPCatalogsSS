@@ -1,13 +1,13 @@
 package com.tsfrm.loadtestproductcatalog.service;
 
 import com.tsfrm.loadtestproductcatalog.domain.*;
+import com.tsfrm.loadtestproductcatalog.domain.entity.LocationEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
 import com.tsfrm.loadtestproductcatalog.repository.JdbcConfig;
 import com.tsfrm.loadtestproductcatalog.repository.JsonStorageRepository;
 import com.tsfrm.loadtestproductcatalog.repository.OrgRepository;
 import com.tsfrm.loadtestproductcatalog.repository.ProductRepository;
 import com.tsfrm.loadtestproductcatalog.service.exception.ValidationException;
-import lombok.Getter;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,10 +23,6 @@ public class VdiProductGenerateService {
     Random random;
     ProductRepository productRepository;
     OrgRepository orgRepository;
-    @Getter
-    List<OrgEntity> allOrgs;
-    @Getter
-    List<String> allProductIds;
     private JsonStorageRepository jsonStorageRepository;
     private static final Logger log = LogManager.getLogger(VdiProductGenerateService.class);
 
@@ -38,18 +34,26 @@ public class VdiProductGenerateService {
         productRepository = new ProductRepository(new JdbcConfig(), jsonStorageRepository);
         orgRepository = new OrgRepository(new JdbcConfig(), jsonStorageRepository);
         updateAllOrgsAndProducts();
-        log.info("Initialization completed. Extracted " + allOrgs.size() + " orgs for VDI2");
+        log.info("Initialization completed. Extracted " + jsonStorageRepository.getOrgs().size() + " orgs for VDI2");
     }
 
 
     public List<VdiProductsTransaction> generateMessages(TestFormData request) {
-        if (request.getOperators() > allOrgs.size())
+        var orgsIds = jsonStorageRepository.getOrgs().stream()
+                .map(OrgEntity::getOrg)
+                .collect(Collectors.toList());
+
+        if (request.getOperators() > orgsIds.size())
             throw new ValidationException(String.format("Request validation failed. Too many operators. Requested: %d; available: %d", request.getOperators(), allOrgs.size()));
 
-        Collections.shuffle(allOrgs);
+        Collections.shuffle(orgsIds);
         var orgs = new ArrayList<OrgEntity>();
         for (int i = 0; i < request.getOperators(); i++) {
-            orgs.add(allOrgs.get(i));
+
+            //TODO переписать на stream
+            for (OrgEntity orgEntity : jsonStorageRepository.getOrgs()){
+                if (orgEntity.getOrg().equals(orgsIds.get(i))) orgs.add(orgEntity);
+            }
         }
 
         isValid(request, orgs);
@@ -113,6 +117,15 @@ public class VdiProductGenerateService {
             var productId = productIds.get(i);
             resultList.add(new VdiProductsRemove(productId));
         }
+
+        for (OrgEntity oe : jsonStorageRepository.getOrgs()){
+            for (LocationEntity le : oe.getLocations()){
+                for (String prodId : le.getProductIds()){
+                    // TODO !!! Сделать мапой и учесть итерацию (удаляем из списка продукты на remove)
+                    if (productIds.contains(prodId)) le.getProductIds().remove(prodId);
+                }
+            }
+        }
         return resultList;
     }
 
@@ -167,14 +180,12 @@ public class VdiProductGenerateService {
 
 
     // method creates new product list
+    // TODO учесть добавление продукта в jsonrepository
     public List<VdiProduct> generateProduct(int numberToCreate) {
         var resultList = new ArrayList<VdiProduct>(numberToCreate);
         for (int i = 0; i < numberToCreate; i++) {
             var rawProduct = UtilProductGeneration.PRODUCT_RAW_LIST.get(random.nextInt(UtilProductGeneration.PRODUCT_RAW_LIST.size()));
             var productId = UUID.randomUUID().toString().replaceAll("-", "");
-            while (allProductIds.contains(productId)) {
-                productId = UUID.randomUUID().toString();
-            }
 
             var cost = generateNumberValue(1, 10);
             var resultProudct = VdiProduct.builder()
