@@ -32,13 +32,13 @@ public class JsonStorageRepository {
     private Set<OrgEntity> orgs;
     @Setter
     @Getter
-    private Map<String, HashSet<VdiProductEntity>> locationProductMap;
+    private Map<String, Map<String, HashSet<VdiProductEntity>>> orgLocProductMap;
 
 
     public JsonStorageRepository() {
         this.converter = new JsonEntityConverter();
         this.orgs = new HashSet<>();
-        this.locationProductMap = new HashMap<>();
+        this.orgLocProductMap = new HashMap<>();
         readProcessing();
     }
 
@@ -50,7 +50,7 @@ public class JsonStorageRepository {
 
         for (OrgEntity org : orgs) {
             for (LocationEntity loc : org.getLocations()) {
-                var productsForLoc = locationProductMap.get(loc.getLocationId());
+                var productsForLoc = orgLocProductMap.get(org.getOrg()).get(loc.getLocationId());
                 productsForLoc.forEach(p -> {
                     var productJson = converter.productToJson(p, loc.getLocationId());
                     productJsonList.add(productJson);
@@ -71,32 +71,61 @@ public class JsonStorageRepository {
         var locationsJson = readLocationsJson(LOCATIONS_STORAGE);
         var orgsJson = readOrgsJson(ORGS_STORAGE);
 
-        var locProductMap = new HashMap<String, HashSet<VdiProductEntity>>();
-        var orgLocMap = new HashMap<String, HashSet<LocationEntity>>();
+        productsJson.removeIf(Objects::isNull);
+        var generalMap = new HashMap<String, Map<String, HashSet<VdiProductEntity>>>();
 
         productsJson.removeIf(Objects::isNull);
-        productsJson.forEach(pj -> {
-            locProductMap.putIfAbsent(pj.getLocation(), new HashSet<>());
-            locProductMap.get(pj.getLocation()).add(converter.jsonToProduct(pj));
-        });
+        for (OrgJsonEntity o : orgsJson) {
+            generalMap.putIfAbsent(o.getOrg(), new HashMap<>());
+            for (LocationJsonEntity l : locationsJson) {
+                generalMap.get(o.getOrg()).putIfAbsent(l.getLocationId(), new HashSet<>());
+            }
+        }
+        for (VdiProductJsonEntity p : productsJson) {
+            var locId = p.getLocation();
+            var orgId = p.getOrg();
+            if (locId == null || orgId == null) continue;
+            var orgMap = generalMap.get(orgId);
+            if (orgMap == null) continue;
+            var locMap = orgMap.get(locId);
+            if (locMap != null) locMap.add(converter.jsonToProduct(p));
+        }
+        this.orgLocProductMap = generalMap;
 
-        locationsJson.forEach(loc -> {
-            var locProducts = locProductMap.get(loc.getLocationId());
-            orgLocMap.putIfAbsent(loc.getOrgId(), new HashSet<>());
-            orgLocMap.get(loc.getOrgId()).add(converter.jsonToLocation(loc, locProducts));
-        });
+        //fill orgs
+        var orgsToUpdate = new HashSet<OrgEntity>();
+        for (Map.Entry<String, Map<String, HashSet<VdiProductEntity>>> orgEntry : generalMap.entrySet()) {
+            var org = orgEntry.getKey();
+            var locMap = orgEntry.getValue();
+            var orgEntity = new OrgEntity();
+            for (OrgJsonEntity orgJson : orgsJson) {
+                if (orgJson.getOrg().equals(org)) {
+                    orgEntity.setOrg(org);
+                    orgEntity.setUserKey(orgJson.getUserKey());
+                    orgEntity.setLocations(new ArrayList<>());
+                }
+            }
 
-        this.locationProductMap = locProductMap;
-        orgsJson.forEach(o -> this.orgs.add(converter.jsonToOrg(o, orgLocMap.get(o.getOrg()))));
+            for (Map.Entry<String, HashSet<VdiProductEntity>> locEntry : locMap.entrySet()) {
+                var locId = locEntry.getKey();
+                var productIdList = locEntry.getValue().stream().map(VdiProductEntity::getId).toList();
+                var locEntity = new LocationEntity();
+                locEntity.setLocationId(locId);
+                locEntity.setProductIds(productIdList);
+                orgEntity.getLocations().add(locEntity);
+            }
+            orgsToUpdate.add(orgEntity);
+        }
+        this.orgs = orgsToUpdate;
     }
 
     private void writeJsonFile(Set<? extends BaseJsonEntity> data, String filePath) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        var objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
         try {
-            File outputFile = new File(filePath);
+            var outputFile = new File(filePath);
             objectMapper.writeValue(outputFile, data);
 
             System.out.println("Data successfully added: " + outputFile.getAbsolutePath());
@@ -106,12 +135,12 @@ public class JsonStorageRepository {
     }
 
     private List<VdiProductJsonEntity> readProductsJson(String filePath) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        var objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
         try {
-            File inputFile = new File(filePath);
+            var inputFile = new File(filePath);
             return objectMapper.readValue(inputFile, new TypeReference<>() {
             });
         } catch (Exception e) {
@@ -122,12 +151,12 @@ public class JsonStorageRepository {
     }
 
     private List<LocationJsonEntity> readLocationsJson(String filePath) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        var objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
         try {
-            File inputFile = new File(filePath);
+            var inputFile = new File(filePath);
             return objectMapper.readValue(inputFile, new TypeReference<>() {
             });
         } catch (Exception e) {
@@ -138,12 +167,12 @@ public class JsonStorageRepository {
     }
 
     private List<OrgJsonEntity> readOrgsJson(String filePath) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        var objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
         try {
-            File inputFile = new File(filePath);
+            var inputFile = new File(filePath);
             return objectMapper.readValue(inputFile, new TypeReference<>() {
             });
         } catch (Exception e) {

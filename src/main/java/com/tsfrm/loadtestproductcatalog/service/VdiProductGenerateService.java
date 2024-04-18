@@ -2,7 +2,6 @@ package com.tsfrm.loadtestproductcatalog.service;
 
 import com.tsfrm.loadtestproductcatalog.domain.*;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
-import com.tsfrm.loadtestproductcatalog.domain.entity.VdiProductEntity;
 import com.tsfrm.loadtestproductcatalog.repository.JdbcConfig;
 import com.tsfrm.loadtestproductcatalog.repository.JsonStorageRepository;
 import com.tsfrm.loadtestproductcatalog.repository.OrgRepository;
@@ -63,30 +62,37 @@ public class VdiProductGenerateService {
         for (OrgEntity o : orgs) {
             var vpt = new VdiProductsTransaction();
             var marketProductList = new ArrayList<VdiMarketProduct>();
-            var locations = o.getLocations();
+            var locations = new ArrayList<>(o.getLocations());
             Collections.shuffle(locations);
             //LOCATIONS per operator
             for (int i = 0; i < request.getLocations(); i++) {
                 var location = locations.get(i);
-                var productsToRemove = removeProducts(request.getProductsToDelete(), location.getProductIds());
+                var productIds = new ArrayList<>(location.getProductIds());
+                Collections.shuffle(productIds);
+                var productsToRemove = removeProducts(request.getProductsToDelete(), productIds);
                 var productsToCreate = generateProduct(request.getNewProducts());
-                var productsToUpdate = updateProducts(request.getProductsToUpdate(), location.getProductIds());
+                Collections.shuffle(productIds);
+                var productsToUpdate = updateProducts(request.getProductsToUpdate(), productIds);
                 productsToUpdate.addAll(productsToCreate);
                 marketProductList.add(new VdiMarketProduct(location.getLocationId(), generateCatalogType(), productsToRemove, productsToUpdate));
 
 
                 //delete from productLocationMap (needed for transactions)
-                jsonStorageRepository.getLocationProductMap().values().forEach(vdiProductSet ->
-                        vdiProductSet.removeIf(productEntity ->
+
+                jsonStorageRepository.getOrgLocProductMap()
+                        .get(o.getOrg())
+                        .get(location.getLocationId())
+                        .removeIf(productEntity ->
                                 productsToRemove.stream()
-                                        .anyMatch(prodToDelete -> prodToDelete.getProductId().equals(productEntity.getId()))
-                        )
-                );
+                                        .anyMatch(deleteProd -> deleteProd.getProductId().equals(productEntity.getId()))
+                        );
+
 
                 //add new products to productLocationMap (needed for transactions)
                 productsToCreate.stream()
                         .map(pNew -> converter.vdiProductToEntity(pNew, o.getOrg()))
-                        .forEach(vpe -> jsonStorageRepository.getLocationProductMap()
+                        .forEach(vpe -> jsonStorageRepository.getOrgLocProductMap()
+                                .get(o.getOrg())
                                 .get(location.getLocationId()).add(vpe));
             }
 
@@ -121,7 +127,6 @@ public class VdiProductGenerateService {
 
 
     public List<VdiProductsRemove> removeProducts(int numberToRemove, List<String> productIds) {
-        Collections.shuffle(productIds);
         var resultList = new ArrayList<VdiProductsRemove>();
         for (int i = 0; i < numberToRemove; i++) {
             var productId = productIds.get(i);
@@ -268,10 +273,10 @@ public class VdiProductGenerateService {
 
             o.getLocations().forEach(l -> {
                 if (l.getProductIds().size() < request.getProductsToUpdate())
-                    throw new ValidationException(String.format("Too many products to update. Location  %s contains %d products. But required %d . %s", l.getLocationId(), l.getProductIds().size(), request.getLocations(), recommendation));
+                    throw new ValidationException(String.format("Too many products to update. Location  %s contains %d products. But required %d . %s", l.getLocationId(), l.getProductIds().size(), request.getProductsToUpdate(), recommendation));
 
                 if (l.getProductIds().size() < request.getProductsToDelete())
-                    throw new ValidationException(String.format("Too many products to delete. Location  %s contains %d products. But required %d . %s", l.getLocationId(), l.getProductIds().size(), request.getLocations(), recommendation));
+                    throw new ValidationException(String.format("Too many products to delete. Location  %s contains %d products. But required %d . %s", l.getLocationId(), l.getProductIds().size(), request.getProductsToDelete(), recommendation));
             });
 
         });

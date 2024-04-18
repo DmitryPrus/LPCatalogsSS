@@ -1,11 +1,9 @@
 package com.tsfrm.loadtestproductcatalog.repository;
 
-import com.tsfrm.loadtestproductcatalog.domain.entity.LocationEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.sql.*;
 import java.util.*;
 
 public class OrgRepository extends BaseRepository<OrgEntity> {

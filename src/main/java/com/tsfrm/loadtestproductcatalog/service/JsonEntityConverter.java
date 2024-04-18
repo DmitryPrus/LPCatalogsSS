@@ -8,11 +8,8 @@ import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.LocationJsonEntity;
 import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.OrgJsonEntity;
 import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.VdiProductJsonEntity;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class JsonEntityConverter {
@@ -74,20 +71,20 @@ public class JsonEntityConverter {
         return pe;
     }
 
-    public VdiProductEntity vdiProductToEntity (VdiProduct prod, String orgId){
+    public VdiProductEntity vdiProductToEntity(VdiProduct prod, String orgId) {
         VdiProductEntity vpe = new VdiProductEntity();
-         vpe.setId(prod.getProductId());
-         vpe.setScancode(prod.getProductCode());
-         vpe.setOrg(orgId);
-         vpe.setName(prod.getProductName());
-         vpe.setShortname(prod.getShortProductName());
-         vpe.setCategory1(prod.getCategoryCode());
-         vpe.setCost(prod.getCost());
-         vpe.setPrice(prod.getPrice());
-         vpe.setLastupdated(prod.getLastChangeDtm().toLocalDateTime());
-         vpe.setMinstock(String.valueOf(prod.getMinQuantity()));
-         vpe.setMaxstock(String.valueOf(prod.getMaxQuantity()));
-         return vpe;
+        vpe.setId(prod.getProductId());
+        vpe.setScancode(prod.getProductCode());
+        vpe.setOrg(orgId);
+        vpe.setName(prod.getProductName());
+        vpe.setShortname(prod.getShortProductName());
+        vpe.setCategory1(prod.getCategoryCode());
+        vpe.setCost(prod.getCost());
+        vpe.setPrice(prod.getPrice());
+        vpe.setLastupdated(prod.getLastChangeDtm().toLocalDateTime());
+        vpe.setMinstock(String.valueOf(prod.getMinQuantity()));
+        vpe.setMaxstock(String.valueOf(prod.getMaxQuantity()));
+        return vpe;
     }
 
     public LocationJsonEntity locationToJson(LocationEntity location, String ortId) {

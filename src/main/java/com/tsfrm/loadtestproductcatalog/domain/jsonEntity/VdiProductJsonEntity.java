@@ -38,16 +38,17 @@ public class VdiProductJsonEntity extends BaseJsonEntity {
     private LocalDateTime lastupdated;
     private String location;
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VdiProductJsonEntity that = (VdiProductJsonEntity) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(id, that.id) && Objects.equals(org, that.org) && Objects.equals(location, that.location);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, org, location);
     }
 }

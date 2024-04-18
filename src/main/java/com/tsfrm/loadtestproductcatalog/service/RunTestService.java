@@ -25,7 +25,7 @@ public class RunTestService {
         this.threadsQuantity = threadsQuantity;
     }
 
-    public String runTestSpringController(TestFormData testFormData){
+    public String runTestSpringController(TestFormData testFormData) {
         jsonStorageRepository.readProcessing();
         return runTest(testFormData);
     }
@@ -43,9 +43,11 @@ public class RunTestService {
                 executorService.execute(requestProcessor);
             }
             executorService.shutdown();
-            while (!executorService.isTerminated()) {}
+            while (!executorService.isTerminated()) {
+            }
             log.info("All messages have been processed successfully");
             jsonStorageRepository.writeProcessing(); // update of json files
+            jsonStorageRepository.readProcessing();
             return "All messages have been processed successfully";
         } catch (Exception e) {
             return e.getMessage();

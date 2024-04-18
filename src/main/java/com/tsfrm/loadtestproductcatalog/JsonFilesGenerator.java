@@ -20,7 +20,7 @@ public class JsonFilesGenerator {
     public int locationsMinimum = System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM") != null ? Integer.parseInt(System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM")) : 3;
 
 
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
 //        logic to write JSON file from database
 //        JsonFilesGenerator jfg = new JsonFilesGenerator();
 //        jfg.readDatabaseDataAndStoreToJson();
@@ -28,7 +28,6 @@ public class JsonFilesGenerator {
         Integer threadsQuantity = System.getenv("OUTBOUND_THREADS_QUANTITY") != null ? Integer.parseInt(System.getenv("OUTBOUND_THREADS_QUANTITY")) : 20;
         RunTestService rt = new RunTestService(url, threadsQuantity);
         System.out.println();
-
     }
 
     private void readDatabaseDataAndStoreToJson() throws SQLException {
@@ -44,16 +43,18 @@ public class JsonFilesGenerator {
         });
 
 
-        var locationProductMap = jsonRepository.getLocationProductMap();
-        for (OrgEntity o : orgList){
-            for (LocationEntity l : o.getLocations()){
-                locationProductMap.putIfAbsent(l.getLocationId(), new HashSet<>());
-                locationProductMap.get(l.getLocationId()).addAll(findAllByProductIds(l.getProductIds()));
+        var locOrgLocProdMap = jsonRepository.getOrgLocProductMap();
+        for (OrgEntity o : orgList) {
+            locOrgLocProdMap.putIfAbsent(o.getOrg(), new HashMap<>());
+            for (LocationEntity l : o.getLocations()) {
+                locOrgLocProdMap.get(o.getOrg()).putIfAbsent(l.getLocationId(), new HashSet<>());
+                locOrgLocProdMap.get(o.getOrg()).get(l.getLocationId()).addAll(findAllByProductIds(l.getProductIds()));
             }
         }
 
         System.out.println("Cleared all organizations having no binded locations");
         jsonRepository.setOrgs(new HashSet<>(orgList));
+        jsonRepository.setOrgLocProductMap(locOrgLocProdMap);
         jsonRepository.writeProcessing();
         System.out.println("Json fillment processing finished");
     }
