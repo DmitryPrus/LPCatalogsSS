@@ -21,11 +21,19 @@ public class LambdaController implements RequestHandler<TestFormData, String> {
                         DB_PASSWORD : *****
                         DESTINATION_URL : %s
                         OUTBOUND_THREADS_QUANTITY : %s
+                        LOCATIONS_PER_OPERATOR_MINIMUM: %s
+                        PRODUCTS_STORAGE_PATH: %s
+                        LOCATIONS_STORAGE_PATH: %s
+                        ORGS_STORAGE_PATH: %s
                         """,
                 System.getenv("DB_URL"),
                 System.getenv("DB_USER"),
                 System.getenv("DESTINATION_URL"),
-                System.getenv("OUTBOUND_THREADS_QUANTITY")
+                System.getenv("OUTBOUND_THREADS_QUANTITY"),
+                System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM"),
+                System.getenv("PRODUCTS_STORAGE_PATH"),
+                System.getenv("LOCATIONS_STORAGE_PATH"),
+                System.getenv("ORGS_STORAGE_PATH")
         );
 
         log.info("Run with data: \n" + message);

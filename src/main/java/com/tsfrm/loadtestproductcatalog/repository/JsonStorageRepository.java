@@ -21,9 +21,9 @@ import java.util.*;
 
 public class JsonStorageRepository {
 
-    private final String PRODUCTS_STORAGE = "src/main/resources/storage/product-storage.json";
-    private final String LOCATIONS_STORAGE = "src/main/resources/storage/location-storage.json";
-    private final String ORGS_STORAGE = "src/main/resources/storage/org-storage.json";
+    public final String PRODUCTS_STORAGE = System.getenv("PRODUCTS_STORAGE_PATH") != null ? System.getenv("PRODUCTS_STORAGE_PATH") : "src/main/resources/storage/product-storage.json";
+    public final String LOCATIONS_STORAGE = System.getenv("LOCATIONS_STORAGE_PATH") != null ? System.getenv("LOCATIONS_STORAGE_PATH") : "src/main/resources/storage/location-storage.json";
+    public final String ORGS_STORAGE = System.getenv("ORGS_STORAGE_PATH") != null ? System.getenv("ORGS_STORAGE_PATH") : "src/main/resources/storage/org-storage.json";
 
     private JsonEntityConverter converter;
 

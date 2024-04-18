@@ -1,8 +1,8 @@
 package com.tsfrm.loadtestproductcatalog.service;
 
 import com.tsfrm.loadtestproductcatalog.domain.*;
-import com.tsfrm.loadtestproductcatalog.domain.entity.LocationEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
+import com.tsfrm.loadtestproductcatalog.domain.entity.VdiProductEntity;
 import com.tsfrm.loadtestproductcatalog.repository.JdbcConfig;
 import com.tsfrm.loadtestproductcatalog.repository.JsonStorageRepository;
 import com.tsfrm.loadtestproductcatalog.repository.OrgRepository;
@@ -24,16 +24,16 @@ public class VdiProductGenerateService {
     ProductRepository productRepository;
     OrgRepository orgRepository;
     private JsonStorageRepository jsonStorageRepository;
+    private JsonEntityConverter converter;
     private static final Logger log = LogManager.getLogger(VdiProductGenerateService.class);
 
     public VdiProductGenerateService(JsonStorageRepository jsonStorageRepository) {
         this.jsonStorageRepository = jsonStorageRepository;
-
+        this.converter = new JsonEntityConverter();
         log.info("Initialization started. Don't run your test");
         random = new Random();
         productRepository = new ProductRepository(new JdbcConfig(), jsonStorageRepository);
         orgRepository = new OrgRepository(new JdbcConfig(), jsonStorageRepository);
-        updateAllOrgsAndProducts();
         log.info("Initialization completed. Extracted " + jsonStorageRepository.getOrgs().size() + " orgs for VDI2");
     }
 
@@ -44,15 +44,13 @@ public class VdiProductGenerateService {
                 .collect(Collectors.toList());
 
         if (request.getOperators() > orgsIds.size())
-            throw new ValidationException(String.format("Request validation failed. Too many operators. Requested: %d; available: %d", request.getOperators(), allOrgs.size()));
+            throw new ValidationException(String.format("Request validation failed. Too many operators. Requested: %d; available: %d", request.getOperators(), orgsIds.size()));
 
         Collections.shuffle(orgsIds);
         var orgs = new ArrayList<OrgEntity>();
         for (int i = 0; i < request.getOperators(); i++) {
-
-            //TODO переписать на stream
-            for (OrgEntity orgEntity : jsonStorageRepository.getOrgs()){
-                if (orgEntity.getOrg().equals(orgsIds.get(i))) orgs.add(orgEntity);
+            for (OrgEntity o : jsonStorageRepository.getOrgs()) {
+                if (o.getOrg().equals(orgsIds.get(i))) orgs.add(o);
             }
         }
 
@@ -75,15 +73,27 @@ public class VdiProductGenerateService {
                 var productsToUpdate = updateProducts(request.getProductsToUpdate(), location.getProductIds());
                 productsToUpdate.addAll(productsToCreate);
                 marketProductList.add(new VdiMarketProduct(location.getLocationId(), generateCatalogType(), productsToRemove, productsToUpdate));
+
+
+                //delete from productLocationMap (needed for transactions)
+                jsonStorageRepository.getLocationProductMap().values().forEach(vdiProductSet ->
+                        vdiProductSet.removeIf(productEntity ->
+                                productsToRemove.stream()
+                                        .anyMatch(prodToDelete -> prodToDelete.getProductId().equals(productEntity.getId()))
+                        )
+                );
+
+                //add new products to productLocationMap (needed for transactions)
+                productsToCreate.stream()
+                        .map(pNew -> converter.vdiProductToEntity(pNew, o.getOrg()))
+                        .forEach(vpe -> jsonStorageRepository.getLocationProductMap()
+                                .get(location.getLocationId()).add(vpe));
             }
 
             vpt.setVdiHeader(generateHeader(o.getUserKey()));
             vpt.setProducts(marketProductList);
             messages.add(vpt);
         }
-
-        //TODO replace this method!
-        //CompletableFuture.runAsync(this::updateAllOrgsAndProducts);
         return messages;
     }
 
@@ -116,15 +126,6 @@ public class VdiProductGenerateService {
         for (int i = 0; i < numberToRemove; i++) {
             var productId = productIds.get(i);
             resultList.add(new VdiProductsRemove(productId));
-        }
-
-        for (OrgEntity oe : jsonStorageRepository.getOrgs()){
-            for (LocationEntity le : oe.getLocations()){
-                for (String prodId : le.getProductIds()){
-                    // TODO !!! Сделать мапой и учесть итерацию (удаляем из списка продукты на remove)
-                    if (productIds.contains(prodId)) le.getProductIds().remove(prodId);
-                }
-            }
         }
         return resultList;
     }
@@ -180,7 +181,6 @@ public class VdiProductGenerateService {
 
 
     // method creates new product list
-    // TODO учесть добавление продукта в jsonrepository
     public List<VdiProduct> generateProduct(int numberToCreate) {
         var resultList = new ArrayList<VdiProduct>(numberToCreate);
         for (int i = 0; i < numberToCreate; i++) {
@@ -275,14 +275,6 @@ public class VdiProductGenerateService {
             });
 
         });
-    }
-
-    private void updateAllOrgsAndProducts(){
-        allOrgs = orgRepository.getVdi2OrgEntitiesFullList();
-        allProductIds = allOrgs.stream()
-                .flatMap(org -> org.getLocations().stream())
-                .flatMap(location -> location.getProductIds().stream())
-                .collect(Collectors.toList());
     }
 
 }

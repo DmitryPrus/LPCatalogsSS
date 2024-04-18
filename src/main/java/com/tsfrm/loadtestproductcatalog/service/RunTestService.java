@@ -14,13 +14,20 @@ public class RunTestService {
     public String httpUrl;
     public Integer threadsQuantity;
 
+    private JsonStorageRepository jsonStorageRepository;
+
     private static final Logger log = LogManager.getLogger(RunTestService.class);
 
     public RunTestService(String httpUrl, Integer threadsQuantity) {
-        var jsonStorageRepository = new JsonStorageRepository();
+        this.jsonStorageRepository = new JsonStorageRepository();
         this.vdiProductGenerateService = new VdiProductGenerateService(jsonStorageRepository);
         this.httpUrl = httpUrl;
         this.threadsQuantity = threadsQuantity;
+    }
+
+    public String runTestSpringController(TestFormData testFormData){
+        jsonStorageRepository.readProcessing();
+        return runTest(testFormData);
     }
 
     public String runTest(TestFormData testFormData) {
@@ -38,6 +45,7 @@ public class RunTestService {
             executorService.shutdown();
             while (!executorService.isTerminated()) {}
             log.info("All messages have been processed successfully");
+            jsonStorageRepository.writeProcessing(); // update of json files
             return "All messages have been processed successfully";
         } catch (Exception e) {
             return e.getMessage();

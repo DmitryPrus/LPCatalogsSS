@@ -9,7 +9,6 @@ public class Const {
     // header data
 
     // location must be under operatorId
-    public static final List<String> HEADER_OPERATORS_ID = new ArrayList<>(List.of("001", "002", "003", "004", "005"));
     public static final String HEADER_PARTNER_APPLICATION_ID = "365";
     public static final String HEADER_VDI_TYPE = "mmsproducts";
     public static final String HEADER_PROVIDER_NAME = "Product-Test-Provider";

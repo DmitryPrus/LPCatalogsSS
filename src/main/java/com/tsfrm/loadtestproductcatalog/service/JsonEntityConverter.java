@@ -74,32 +74,20 @@ public class JsonEntityConverter {
         return pe;
     }
 
-    //TODO доделать трансорматор. посмотреть что из себя представляет оно в БД и на какие поля entity мапится.
-    public VdiProductEntity vdiProductToEntity (VdiProduct prod, String orgId, String LocationId){
+    public VdiProductEntity vdiProductToEntity (VdiProduct prod, String orgId){
         VdiProductEntity vpe = new VdiProductEntity();
          vpe.setId(prod.getProductId());
+         vpe.setScancode(prod.getProductCode());
          vpe.setOrg(orgId);
          vpe.setName(prod.getProductName());
          vpe.setShortname(prod.getShortProductName());
-         vpe.setScancode(prod.categ);
-         String upc;
-         String scancode;
-         String category1;
-         String category2;
-         String category3;
-         String status;
-         String userkey;
-         BigDecimal cost;
-         BigDecimal price;
-         BigDecimal tax;
-         BigDecimal tax2;
-         BigDecimal tax3;
-         BigDecimal tax4;
-         int points;
-         String minstock;
-         String maxstock;
-         LocalDateTime datecreated;
-         LocalDateTime lastupdated;
+         vpe.setCategory1(prod.getCategoryCode());
+         vpe.setCost(prod.getCost());
+         vpe.setPrice(prod.getPrice());
+         vpe.setLastupdated(prod.getLastChangeDtm().toLocalDateTime());
+         vpe.setMinstock(String.valueOf(prod.getMinQuantity()));
+         vpe.setMaxstock(String.valueOf(prod.getMaxQuantity()));
+         return vpe;
     }
 
     public LocationJsonEntity locationToJson(LocationEntity location, String ortId) {
