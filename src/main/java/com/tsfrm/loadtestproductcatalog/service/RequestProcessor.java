@@ -17,14 +17,16 @@ import java.net.http.HttpResponse;
 public class RequestProcessor implements Runnable {
     private VdiProductsTransaction message;
     private String url;
+    private String authUrlToken;
     private int number;
 
 
     private static final Logger log = LogManager.getLogger(RequestProcessor.class);
 
-    public RequestProcessor(VdiProductsTransaction message, String url, int number) {
+    public RequestProcessor(VdiProductsTransaction message, String url, String authUrlToken, int number) {
         this.message = message;
         this.url = url;
+        this.authUrlToken = authUrlToken;
         this.number = number;
     }
 
@@ -41,15 +43,19 @@ public class RequestProcessor implements Runnable {
             var request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer "+ authUrlToken)
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
-            log.info("Thread " + number + " send message to URL: " + url);
+            log.info("Thread " + number + " is sending a message to URL: " + url);
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             int statusCode = response.statusCode();
-            var responseBody = response.body();
-            log.info("Thread " + number + " finished with status: " + statusCode);
+            if (statusCode >=400) {
+                log.error("Error sending message. Status :"+statusCode + " "+ response.body() );
+            } else {
+                log.info("Thread " + number + " finished with status: " + statusCode);
+            }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }

@@ -11,8 +11,8 @@ public class Const {
     // location must be under operatorId
     public static final String HEADER_PARTNER_APPLICATION_ID = "365";
     public static final String HEADER_VDI_TYPE = "mmsproducts";
-    public static final String HEADER_PROVIDER_NAME = "Product-Test-Provider";
-    public static final String HEADER_VDI_VERSION = "Product-Test-Provider";
+    public static final String HEADER_PROVIDER_NAME = "April_01"; //VERY IMPORTANT TO MODIFY
+    public static final String HEADER_VDI_VERSION = "Load-product-catalog-test";
 
 
     public static final List<String> TAX_IDS = new ArrayList<>(List.of("taxId1", "taxId2", "taxId3", "taxId4"));

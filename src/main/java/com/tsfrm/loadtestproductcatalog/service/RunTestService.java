@@ -10,18 +10,19 @@ import java.util.concurrent.Executors;
 
 public class RunTestService {
 
-    VdiProductGenerateService vdiProductGenerateService;
-    public String httpUrl;
-    public Integer threadsQuantity;
-
+    private VdiProductGenerateService vdiProductGenerateService;
+    private String httpUrl;
+    private Integer threadsQuantity;
     private JsonStorageRepository jsonStorageRepository;
+    private String authUrlToken;
 
     private static final Logger log = LogManager.getLogger(RunTestService.class);
 
-    public RunTestService(String httpUrl, Integer threadsQuantity) {
+    public RunTestService(String httpUrl, String authUrlToken, Integer threadsQuantity) {
         this.jsonStorageRepository = new JsonStorageRepository();
         this.vdiProductGenerateService = new VdiProductGenerateService(jsonStorageRepository);
         this.httpUrl = httpUrl;
+        this.authUrlToken = authUrlToken;
         this.threadsQuantity = threadsQuantity;
     }
 
@@ -39,7 +40,7 @@ public class RunTestService {
             var executorService = Executors.newFixedThreadPool(threadsQuantity);
 
             for (int i = 0; i < messages.size(); i++) {
-                var requestProcessor = new RequestProcessor(messages.get(i), httpUrl, i + 1);
+                var requestProcessor = new RequestProcessor(messages.get(i), httpUrl, authUrlToken, i + 1);
                 executorService.execute(requestProcessor);
             }
             executorService.shutdown();

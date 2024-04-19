@@ -17,23 +17,25 @@ public class JsonFilesGenerator {
     JdbcConfig config = new JdbcConfig();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     JsonStorageRepository jsonRepository = new JsonStorageRepository();
-    public int locationsMinimum = System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM") != null ? Integer.parseInt(System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM")) : 3;
+    public int locationsMinimum = System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM") != null ? Integer.parseInt(System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM")) : 1;
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
 //        logic to write JSON file from database
-//        JsonFilesGenerator jfg = new JsonFilesGenerator();
-//        jfg.readDatabaseDataAndStoreToJson();
-        String url = System.getenv("DESTINATION_URL") != null ? System.getenv("DESTINATION_URL") : "http://localhost:8082/mmsproducts/1/localtest";
-        Integer threadsQuantity = System.getenv("OUTBOUND_THREADS_QUANTITY") != null ? Integer.parseInt(System.getenv("OUTBOUND_THREADS_QUANTITY")) : 20;
-        RunTestService rt = new RunTestService(url, threadsQuantity);
-        System.out.println();
+        JsonFilesGenerator jfg = new JsonFilesGenerator();
+        jfg.readDatabaseDataAndStoreToJson();
+//        String url = System.getenv("DESTINATION_URL") != null ? System.getenv("DESTINATION_URL") : "http://localhost:8082/mmsproducts/1/localtest";
+//        Integer threadsQuantity = System.getenv("OUTBOUND_THREADS_QUANTITY") != null ? Integer.parseInt(System.getenv("OUTBOUND_THREADS_QUANTITY")) : 20;
+//        RunTestService rt = new RunTestService(url, threadsQuantity);
+//        System.out.println();
     }
 
     private void readDatabaseDataAndStoreToJson() throws SQLException {
         var orgList = getAllOrgEntitiesWithoutLocations();
         System.out.println("OrgLis created with quantity " + orgList.size());
-        System.out.println("Fill orglist by locations and productIds started");
+        System.out.println("Fill orglist by locations");
+        fillByLocations(orgList);
+        System.out.println("Fill by products");
         fillOrgsByLocationsAndProducts(orgList);
 
         orgList.removeIf(org -> {
@@ -67,11 +69,20 @@ public class JsonFilesGenerator {
      */
     private List<OrgEntity> getAllOrgEntitiesWithoutLocations() throws SQLException {
         var resultList = new ArrayList<OrgEntity>();
-        var query = "SELECT ORG, ANY_VALUE(USERKEY) AS USERKEY FROM VDIUSERKEY K " +
-                "INNER JOIN vdiproviderinfo VPI ON K.VDIPROVIDER = VPI.ID " +
-                "WHERE K.ORG IS NOT NULL and K.USERKEY is not null " +
-                "GROUP BY ORG " +
-                "LIMIT 200;";
+        var query = String.format("""
+                SELECT o.ID, vuk.USERKEY
+                FROM org o
+                         INNER JOIN vdiuserkey vuk ON o.ID = vuk.ORG
+                         INNER JOIN vdiproviderinfo vp ON vuk.VDIPROVIDER = vp.ID
+                         INNER JOIN sfecfg c ON c.NAME = o.ID
+                WHERE c.TYPE = 'VDIENABLE'
+                  AND c.VALUE = 'Y'
+                  AND c.CFGTYPE = 'ORG'
+                  AND vp.NAME = %s
+                limit 200;
+                """,
+                "April_01"
+                );
 
         try (
                 var connection = DriverManager.getConnection(config.dbUrl, config.dbUser, config.dbPassword);
@@ -89,12 +100,45 @@ public class JsonFilesGenerator {
         return resultList;
     }
 
-    private void fillOrgsByLocationsAndProducts(List<OrgEntity> orgs) throws SQLException {
-        var orgIds = orgs.stream()
-                .map(OrgEntity::getOrg).toList();
-
+    private void fillByLocations(List<OrgEntity> orgs) throws SQLException {
+        var orgIds = orgs.stream().map(OrgEntity::getOrg).toList();
         if (orgIds.isEmpty()) throw new RuntimeException("There are no organizations for VDI2 in database");
+        var vdiEnableLocationsQuery = """
+                SELECT distinct l.id FROM vdiuserkey vl
+                         INNER JOIN vdiproviderinfo vp ON vl.vdiprovider = vp.id
+                         INNER JOIN location l ON vl.location = l.id
+                         INNER JOIN sfecfg c ON c.name = l.id
+                WHERE c.type = 'VDIENABLE'
+                  AND c.value = 'Y'
+                  AND c.cfgtype = 'LOC'
+                  AND l.org = ?
+                  AND vl.USERKEY = ?
+                """;
 
+        System.out.println("SQL Query: " + vdiEnableLocationsQuery);
+        try (
+                var connection = DriverManager.getConnection(config.dbUrl, config.dbUser, config.dbPassword);
+                var preparedStatement = connection.prepareStatement(vdiEnableLocationsQuery)
+        ) {
+            for (OrgEntity org : orgs) {
+                preparedStatement.setString(1, org.getOrg());
+                preparedStatement.setString(2, org.getUserKey());
+                org.setLocations(new ArrayList<>());
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        var locationID = resultSet.getString("id");
+                        var locAtionEntity = new LocationEntity();
+                        locAtionEntity.setLocationId(locationID);
+                        locAtionEntity.setProductIds(new ArrayList<>());
+                        org.getLocations().add(locAtionEntity);
+                    }
+                }
+            }
+        }
+    }
+
+    private void fillOrgsByLocationsAndProducts(List<OrgEntity> orgs) throws SQLException {
+        var orgIds = orgs.stream().map(OrgEntity::getOrg).toList();
         var queryProduct = "select PRODUCT, LOCATION, ORG from productlocation where productlocation.ORG in (";
         for (int i = 0; i < orgIds.size(); i++) {
             queryProduct += "?";
@@ -135,12 +179,15 @@ public class JsonFilesGenerator {
         for (OrgEntity o : orgs) {
             var locationMap = orgLocationsMap.get(o.getOrg());
             if (locationMap == null) continue;
-            o.setLocations(new ArrayList<>());
             for (var loc : locationMap.entrySet()) {
                 var locId = loc.getKey();
                 var productIds = new ArrayList<>(loc.getValue());
                 if (!productIds.isEmpty()) {
-                    o.getLocations().add(new LocationEntity(locId, productIds));
+                    o.getLocations().forEach(oLoc -> {
+                        if (locId.equals(oLoc.getLocationId())){
+                            oLoc.setProductIds(productIds);
+                        }
+                    });
                 }
             }
         }

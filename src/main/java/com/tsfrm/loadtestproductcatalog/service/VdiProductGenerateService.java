@@ -186,7 +186,7 @@ public class VdiProductGenerateService {
                     .barCodes(List.of(generateBarCode()))
                     .taxes(List.of(generateTaxes()))
                     .fees(List.of(generateVdiFee()))
-                    .nutritions(null)
+                    .nutritions(new ArrayList<>())
                     .build();
 
             listToUpdate.add(productResult);
@@ -223,7 +223,7 @@ public class VdiProductGenerateService {
                     .barCodes(List.of(generateBarCode()))
                     .taxes(List.of(generateTaxes()))
                     .fees(List.of(generateVdiFee()))
-                    .nutritions(null)
+                    .nutritions(new ArrayList<>())
                     .build();
             resultList.add(resultProudct);
         }
@@ -241,6 +241,11 @@ public class VdiProductGenerateService {
 
     private VdiProductAttribute generateAttributes() {
         return new VdiProductAttribute("Attribute1");
+    }
+
+    private VdiNutrition generateVdiNutrition(){
+        var internalNutrition = new VdiNutrition("Saturated Fat", "g", "3", null);
+        return new VdiNutrition("Total Fat", "g", "8", List.of(internalNutrition));
     }
 
 
@@ -277,6 +282,10 @@ public class VdiProductGenerateService {
 
     private void isValid(TestFormData request, List<OrgEntity> orgEntities) {
         String recommendation = "Reduce the value of the exceeding parameter or fill database by needed value and bindings.";
+        if (request.getOperators()==0)
+            throw  new ValidationException("Operators must contain value >0");
+        if (request.getLocations()==0)
+            throw  new ValidationException("Locations must contain value >0");
         orgEntities.forEach(o -> {
             if (o.getLocations().size() < request.getLocations())
                 throw new ValidationException(String.format("Too many locations. Organization  %s contains %d locations. But required %d . %s", o.getOrg(), o.getLocations().size(), request.getLocations(), recommendation));
