@@ -1,5 +1,7 @@
 package com.tsfrm.loadtestproductcatalog.repository;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -31,14 +33,17 @@ import java.util.*;
 public class JsonStorageRepository {
 
     private static final Logger log = LogManager.getLogger(JsonStorageRepository.class);
-    public final String PRODUCTS_STORAGE = System.getenv("PRODUCTS_STORAGE_PATH") != null ? System.getenv("PRODUCTS_STORAGE_PATH") : "src/main/resources/storage/product-storage.json";
-    public final String LOCATIONS_STORAGE = System.getenv("LOCATIONS_STORAGE_PATH") != null ? System.getenv("LOCATIONS_STORAGE_PATH") : "src/main/resources/storage/location-storage.json";
-    public final String ORGS_STORAGE = System.getenv("ORGS_STORAGE_PATH") != null ? System.getenv("ORGS_STORAGE_PATH") : "src/main/resources/storage/org-storage.json";
+    private final String PRODUCTS_STORAGE = System.getenv("PRODUCTS_STORAGE_PATH") != null ? System.getenv("PRODUCTS_STORAGE_PATH") : "src/main/resources/storage/product-storage.json";
+    private final String LOCATIONS_STORAGE = System.getenv("LOCATIONS_STORAGE_PATH") != null ? System.getenv("LOCATIONS_STORAGE_PATH") : "src/main/resources/storage/location-storage.json";
+    private final String ORGS_STORAGE = System.getenv("ORGS_STORAGE_PATH") != null ? System.getenv("ORGS_STORAGE_PATH") : "src/main/resources/storage/org-storage.json";
 
-    public final String BUCKET_NAME = System.getenv("BUCKET_NAME") != null ? System.getenv("BUCKET_NAME") : "orgsstorage";
-    public final String BUCKET_ORGS_KEY = System.getenv("BUCKET_ORGS_KEY") != null ? System.getenv("BUCKET_ORGS_KEY") : "s3://orgsstorage/location-storage.json";
-    public final String BUCKET_LOCATIONS_KEY = System.getenv("BUCKET_LOCATIONS_KEY") != null ? System.getenv("BUCKET_LOCATIONS_KEY") : "s3://orgsstorage/org-storage.json";
-    public final String BUCKET_PRODUCTS_KEY = System.getenv("BUCKET_PRODUCTS_KEY") != null ? System.getenv("BUCKET_PRODUCTS_KEY") : "s3://orgsstorage/product-storage.json";
+    private final String AWS_ACCESS_KEY = System.getenv("AWS_ACCESS_KEY") != null ? System.getenv("AWS_ACCESS_KEY") : "AKIAS2A3QYOTSMXRMWWE";
+    private final String AWS_SECRET_KEY = System.getenv("AWS_SECRET_KEY") != null ? System.getenv("AWS_SECRET_KEY") : "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";
+
+    private final String BUCKET_NAME = System.getenv("BUCKET_NAME") != null ? System.getenv("BUCKET_NAME") : "orgsstorage";
+    private final String BUCKET_ORGS_KEY = System.getenv("BUCKET_ORGS_KEY") != null ? System.getenv("BUCKET_ORGS_KEY") : "org-storage.json";
+    private final String BUCKET_LOCATIONS_KEY = System.getenv("BUCKET_LOCATIONS_KEY") != null ? System.getenv("BUCKET_LOCATIONS_KEY") : "location-storage.json";
+    private final String BUCKET_PRODUCTS_KEY = System.getenv("BUCKET_PRODUCTS_KEY") != null ? System.getenv("BUCKET_PRODUCTS_KEY") : "product-storage.json";
 
     private AmazonS3 s3Client;
     private JsonEntityConverter converter;
@@ -55,7 +60,10 @@ public class JsonStorageRepository {
         this.converter = new JsonEntityConverter();
         this.orgs = new HashSet<>();
         this.orgLocProductMap = new HashMap<>();
-        s3Client = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_NORTH_1).build();
+        s3Client = AmazonS3ClientBuilder
+                .standard()
+                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(AWS_ACCESS_KEY, AWS_SECRET_KEY)))
+                .withRegion(Regions.EU_NORTH_1).build();
         readProcessing();
     }
 
@@ -79,8 +87,8 @@ public class JsonStorageRepository {
 
         //s3 bucket
         writeJsonFileToS3(productJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
-        writeJsonFileToS3(locationJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
-        writeJsonFileToS3(orgJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
+        writeJsonFileToS3(locationJsonList, BUCKET_NAME, BUCKET_LOCATIONS_KEY);
+        writeJsonFileToS3(orgJsonList, BUCKET_NAME, BUCKET_ORGS_KEY);
 
         // local storage
 //        writeJsonFile(productJsonList, PRODUCTS_STORAGE);

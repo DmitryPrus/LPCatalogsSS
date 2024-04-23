@@ -92,7 +92,8 @@ public class JsonEntityConverter {
     }
 
     public LocationEntity jsonToLocation(LocationJsonEntity location, Set<VdiProductEntity> products) {
-        if (products == null) return new LocationEntity(location.getLocationId(), location.getLocationUserKey(), new ArrayList<>());
+        if (products == null)
+            return new LocationEntity(location.getLocationId(), location.getLocationUserKey(), new ArrayList<>());
         var ids = products.stream().map(VdiProductEntity::getId).toList();
         return new LocationEntity(location.getLocationId(), location.getLocationUserKey(), ids);
     }

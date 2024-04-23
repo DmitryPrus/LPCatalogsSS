@@ -43,7 +43,7 @@ public class RequestProcessor implements Runnable {
             var request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer "+ authUrlToken)
+                    .header("Authorization", "Bearer " + authUrlToken)
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
@@ -51,8 +51,8 @@ public class RequestProcessor implements Runnable {
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             int statusCode = response.statusCode();
-            if (statusCode >=400) {
-                log.error("Error sending message. Status :"+statusCode + " "+ response.body() );
+            if (statusCode >= 400) {
+                log.error("Error sending message. Status :" + statusCode + " " + response.body());
             } else {
                 log.info("Thread " + number + " finished with status: " + statusCode);
             }

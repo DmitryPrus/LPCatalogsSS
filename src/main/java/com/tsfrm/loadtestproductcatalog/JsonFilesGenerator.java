@@ -20,7 +20,7 @@ public class JsonFilesGenerator {
     public int locationsMinimum = System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM") != null ? Integer.parseInt(System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM")) : 1;
 
 
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) throws SQLException, ClassNotFoundException {
 //        logic to write JSON file from database
         JsonFilesGenerator jfg = new JsonFilesGenerator();
         jfg.readDatabaseDataAndStoreToJson();
@@ -69,19 +69,19 @@ public class JsonFilesGenerator {
     private List<OrgEntity> getAllOrgEntitiesWithoutLocations() throws SQLException {
         var resultList = new ArrayList<OrgEntity>();
         var query = String.format("""
-                SELECT o.ID as org, vuk.USERKEY
-                FROM org o
-                         INNER JOIN vdiuserkey vuk ON o.ID = vuk.ORG
-                         INNER JOIN vdiproviderinfo vp ON vuk.VDIPROVIDER = vp.ID
-                         INNER JOIN sfecfg c ON c.NAME = o.ID
-                WHERE c.TYPE = 'VDIENABLE'
-                  AND c.VALUE = 'Y'
-                  AND c.CFGTYPE = 'ORG'
-                  AND vp.NAME = '%s'
-                limit 200;
-                """,
+                        SELECT o.ID as org, vuk.USERKEY
+                        FROM org o
+                                 INNER JOIN vdiuserkey vuk ON o.ID = vuk.ORG
+                                 INNER JOIN vdiproviderinfo vp ON vuk.VDIPROVIDER = vp.ID
+                                 INNER JOIN sfecfg c ON c.NAME = o.ID
+                        WHERE c.TYPE = 'VDIENABLE'
+                          AND c.VALUE = 'Y'
+                          AND c.CFGTYPE = 'ORG'
+                          AND vp.NAME = '%s'
+                        limit 200;
+                        """,
                 "April_01"
-                );
+        );
 
         try (
                 var connection = DriverManager.getConnection(config.dbUrl, config.dbUser, config.dbPassword);
@@ -183,10 +183,11 @@ public class JsonFilesGenerator {
             if (locationMap == null) continue;
             for (var loc : locationMap.entrySet()) {
                 var locId = loc.getKey();
+                if (locId == null) continue;
                 var productIds = new ArrayList<>(loc.getValue());
                 if (!productIds.isEmpty()) {
                     o.getLocations().forEach(oLoc -> {
-                        if (locId.equals(oLoc.getLocationId())){
+                        if (locId.equals(oLoc.getLocationId())) {
                             oLoc.setProductIds(productIds);
                         }
                     });
