@@ -1,27 +1,29 @@
-# LoadProductCatalog
+## AWS Lambda Setup
 
-The QA app is a serverless application built using AWS Lambda. Below are the steps to set up and run the app:
+1. Create a Lambda function on AWS.
+2. Upload the .jar file (Java 17) to the Lambda function.
+3. Set the handler as `'com.tsfrm.loadtestproductcatalog.controller.LambdaController::handleRequest'`.
+4. Set the following environment variables:
 
-## Prerequisites
+```
+DESTINATION_URL - destination endpoint for sending messages
+AUTH_TOKEN - auth token for DESTINATION_URL
+HEADER_PROVIDER_NAME - name of available provider (default "April_01")
+OUTBOUND_THREADS_QUANTITY - Number of messages sending at the same time (default 3)
+LOCATIONS_PER_OPERATOR_MINIMUM - params which let us remove organizations containing less than N locations (default: 1)
 
-- AWS account with appropriate permissions
-- Java Runtime Environment (JRE) installed
-- Jar file for the app (attached)
+BUCKET_NAME - name of storage bucket (default: orgsstorage)
+BUCKET_ORGS_KEY - name of file which contains organizations in bucket (default: org-storage.json)
+BUCKET_LOCATIONS_KEY - name of file which contains locations in bucket (default: location-storage.json)
+BUCKET_PRODUCTS_KEY - name of file which contains products in bucket (default: product-storage.json)
 
-## Setup Steps
+AWS_ACCESS_KEY - AWS user's access key (probably create a new user for it)
+AWS_SECRET_KEY - AWS user's secret key
+```
 
-1. Create an AWS Lambda function with any name of your choice.
-2. Upload the jar file of the current app to the Lambda function.
-3. Set runtime settings as com.tsfrm.loadtestproductcatalog.controller.LambdaController::handleRequest
-4. Increase the timeout configuration of the Lambda function to 10 minutes. You can do this by going to Configuration ->
-   General Configuration -> Edit -> Timeout.
-5. Add the following data to the Lambda function's environment variables:
-    - DB_URL: The URL of the database
-    - DB_USER: The username for the database
-    - DB_PASSWORD: The password for the database
-    - DESTINATION_URL: The final endpoint where the data will be sent
-    - OUTBOUND_THREADS_QUANTITY: The number of messages to be sent simultaneously
-6. Run the Lambda function in the 'test' mode using the following example request:
+## Testing the Lambda Function
+
+5. Open the Lambda console and use the following request payload:
 
 ```json
 {
@@ -33,25 +35,21 @@ The QA app is a serverless application built using AWS Lambda. Below are the ste
 }
 ```
 
-## Initialization
+- `operators`: Number of operators to extract for update.
+- `locations`: Number of locations per operator to handle.
+- `newProducts`: Number of products to be newly created for each location of every chosen organization.
+- `productsToDelete`: Number of products to be deleted for each location of every chosen organization.
+- `productsToUpdate`: Number of products to be updated for each location of every chosen organization.
 
-The initialization of the Lambda function may take up to 5 minutes, which is normal. During this time, organizations are
-extracted from the database based on the filter needed for vdi2.
+Note: If the requested number of organizations, locations, or products for update/delete exceeds the available quantity, an error message will be displayed, and the handle operation will not be successful. On successful processing, you will see the log message `'All messages have been processed successfully'`. Additionally, check the CloudWatch logs for messages like `'Thread 1 finished with status: 200'` to ensure that the destination URL is available and all messages were successfully sent.
 
-## Request Validation
+## Logs and Monitoring
 
-After initialization, the incoming request is validated. The app checks the number of locations and the number of
-products to update or delete based on the information already available for all organizations. If the request exceeds
-the available quantities, an exception is thrown with the description of the organization ID, location ID, and
-quantities.
+After sending the message, you can check the logs in the following stack of Lambdas and SQS in the 365 AWS environment:
 
-## Data Modification and Sending
+- `staging-vdiapi-full-april_01-mmsproducts.fifo`
+- `arn:aws:lambda:us-east-2:765545258450:function:staging-vdiapi-message-split`
+- `staging-vdiapi-messages-april_01-mmsmarkets.fifo`
+- `staging-vdiapi-message-import`
 
-If the request passes the validation, the app randomly selects organizations and modifies their products by updating or
-creating new ones. Once all the data is prepared, it is sent to the configured URL simultaneously, considering the
-configured quantity in OUTBOUND_THREADS_QUANTITY (default is 20).
-
-## Source Code
-
-The source code for the app can be found [here](https://github.com/DmitryPrus/LoadProductCatalog). If you need access to
-the repository, please let us know.
+Look for the log response in `staging-vdiapi-message-import`, which contains `'VdiProductsImportService - FinishImportLog(message=product_import_finish)'`. This log entry indicates that the message was successfully handled by the 365 Lambdas.
