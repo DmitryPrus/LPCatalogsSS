@@ -88,13 +88,13 @@ public class JsonEntityConverter {
     }
 
     public LocationJsonEntity locationToJson(LocationEntity location, String ortId) {
-        return new LocationJsonEntity(location.getLocationId(), ortId);
+        return new LocationJsonEntity(location.getLocationId(), location.getLocationUserKey(), ortId);
     }
 
     public LocationEntity jsonToLocation(LocationJsonEntity location, Set<VdiProductEntity> products) {
-        if (products == null) return new LocationEntity(location.getLocationId(), new ArrayList<>());
+        if (products == null) return new LocationEntity(location.getLocationId(), location.getLocationUserKey(), new ArrayList<>());
         var ids = products.stream().map(VdiProductEntity::getId).toList();
-        return new LocationEntity(location.getLocationId(), ids);
+        return new LocationEntity(location.getLocationId(), location.getLocationUserKey(), ids);
     }
 
     public OrgJsonEntity orgToJson(OrgEntity org) {

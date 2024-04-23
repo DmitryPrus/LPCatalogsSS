@@ -14,6 +14,7 @@ import java.util.Objects;
 @AllArgsConstructor
 public class LocationEntity {
     private String locationId;
+    private String locationUserKey;
     private List<String> productIds;
 
     @Override

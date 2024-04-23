@@ -75,8 +75,7 @@ public class VdiProductGenerateService {
                 Collections.shuffle(productIds);
                 var productsToUpdate = updateProducts(request.getProductsToUpdate(), productIds);
                 productsToUpdate.addAll(productsToCreate);
-                marketProductList.add(new VdiMarketProduct(location.getLocationId(), generateCatalogType(), productsToRemove, productsToUpdate));
-
+                marketProductList.add(new VdiMarketProduct(location.getLocationUserKey(), generateCatalogType(), productsToRemove, productsToUpdate));
 
                 //delete from productLocationMap (needed for transactions)
                 jsonStorageRepository.getOrgLocProductMap()
@@ -86,26 +85,23 @@ public class VdiProductGenerateService {
                                 productsToRemove.stream()
                                         .anyMatch(deleteProd -> deleteProd.getProductId().equals(productEntity.getId()))
                         );
-            }
 
-            // add newly added products to getOrgLocProductMap in order to fill json database next
-            marketProductList.forEach(product -> {
+                // update products in productLocationMap
                 var allProductIds = jsonStorageRepository.getOrgLocProductMap()
                         .get(o.getOrg())
-                        .get(product.getMarketId())
+                        .get(location.getLocationId())
                         .stream()
                         .map(VdiProductEntity::getId)
                         .collect(Collectors.toSet());
-                var productsToUpdate = product.getProductsUpdate();
 
                 productsToUpdate.stream()
                         .filter(vp -> !allProductIds.contains(vp.getProductId()))
                         .map(vp -> converter.vdiProductToEntity(vp, o.getOrg()))
                         .forEach(jsonStorageRepository.getOrgLocProductMap()
                                 .get(o.getOrg())
-                                .get(product.getMarketId())::add);
-            });
+                                .get(location.getLocationId())::add);
 
+            }
             vpt.setVdiHeader(generateHeader(o.getUserKey()));
             vpt.setProducts(marketProductList);
             messages.add(vpt);

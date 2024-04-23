@@ -17,9 +17,6 @@ public class LambdaController implements RequestHandler<TestFormData, String> {
 
     {
         String message = String.format("""
-                        DB_URL : %s
-                        DB_USER : %s
-                        DB_PASSWORD : *****
                         DESTINATION_URL : %s
                         AUTH_TOKEN : %s
                         OUTBOUND_THREADS_QUANTITY : %s
@@ -27,16 +24,22 @@ public class LambdaController implements RequestHandler<TestFormData, String> {
                         PRODUCTS_STORAGE_PATH: %s
                         LOCATIONS_STORAGE_PATH: %s
                         ORGS_STORAGE_PATH: %s
+                        BUCKET_NAME: %s
+                        BUCKET_ORGS_KEY: %s
+                        BUCKET_LOCATIONS_KEY: %s
+                        BUCKET_PRODUCTS_KEY: %s
                         """,
-                System.getenv("DB_URL"),
-                System.getenv("DB_USER"),
                 System.getenv("DESTINATION_URL"),
                 System.getenv("AUTH_TOKEN"),
                 System.getenv("OUTBOUND_THREADS_QUANTITY"),
                 System.getenv("LOCATIONS_PER_OPERATOR_MINIMUM"),
                 System.getenv("PRODUCTS_STORAGE_PATH"),
                 System.getenv("LOCATIONS_STORAGE_PATH"),
-                System.getenv("ORGS_STORAGE_PATH")
+                System.getenv("ORGS_STORAGE_PATH"),
+                System.getenv("BUCKET_NAME"),
+                System.getenv("BUCKET_ORGS_KEY"),
+                System.getenv("BUCKET_LOCATIONS_KEY"),
+                System.getenv("BUCKET_PRODUCTS_KEY")
         );
 
         log.info("Run with data: \n" + message);

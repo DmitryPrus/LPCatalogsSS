@@ -13,6 +13,7 @@ import java.util.Objects;
 @AllArgsConstructor
 public class LocationJsonEntity extends BaseJsonEntity {
     private String locationId;
+    private String locationUserKey;
     private String orgId;
 
     @Override
@@ -20,11 +21,11 @@ public class LocationJsonEntity extends BaseJsonEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LocationJsonEntity that = (LocationJsonEntity) o;
-        return Objects.equals(locationId, that.locationId);
+        return Objects.equals(locationId, that.locationId) && Objects.equals(locationUserKey, that.locationUserKey) && Objects.equals(orgId, that.orgId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(locationId);
+        return Objects.hash(locationId, locationUserKey, orgId);
     }
 }

@@ -44,7 +44,6 @@ public class JsonFilesGenerator {
                     locations.size() < locationsMinimum;
         });
 
-
         var locOrgLocProdMap = jsonRepository.getOrgLocProductMap();
         for (OrgEntity o : orgList) {
             locOrgLocProdMap.putIfAbsent(o.getOrg(), new HashMap<>());
@@ -70,7 +69,7 @@ public class JsonFilesGenerator {
     private List<OrgEntity> getAllOrgEntitiesWithoutLocations() throws SQLException {
         var resultList = new ArrayList<OrgEntity>();
         var query = String.format("""
-                SELECT o.ID, vuk.USERKEY
+                SELECT o.ID as org, vuk.USERKEY
                 FROM org o
                          INNER JOIN vdiuserkey vuk ON o.ID = vuk.ORG
                          INNER JOIN vdiproviderinfo vp ON vuk.VDIPROVIDER = vp.ID
@@ -78,7 +77,7 @@ public class JsonFilesGenerator {
                 WHERE c.TYPE = 'VDIENABLE'
                   AND c.VALUE = 'Y'
                   AND c.CFGTYPE = 'ORG'
-                  AND vp.NAME = %s
+                  AND vp.NAME = '%s'
                 limit 200;
                 """,
                 "April_01"
@@ -92,7 +91,7 @@ public class JsonFilesGenerator {
                 while (resultSet.next()) {
                     var org = new OrgEntity();
                     org.setOrg(resultSet.getString("org"));
-                    org.setUserKey(resultSet.getString("userkey"));
+                    org.setUserKey(resultSet.getString("USERKEY"));
                     resultList.add(org);
                 }
             }
@@ -103,32 +102,35 @@ public class JsonFilesGenerator {
     private void fillByLocations(List<OrgEntity> orgs) throws SQLException {
         var orgIds = orgs.stream().map(OrgEntity::getOrg).toList();
         if (orgIds.isEmpty()) throw new RuntimeException("There are no organizations for VDI2 in database");
-        var vdiEnableLocationsQuery = """
-                SELECT distinct l.id FROM vdiuserkey vl
-                         INNER JOIN vdiproviderinfo vp ON vl.vdiprovider = vp.id
-                         INNER JOIN location l ON vl.location = l.id
-                         INNER JOIN sfecfg c ON c.name = l.id
-                WHERE c.type = 'VDIENABLE'
-                  AND c.value = 'Y'
-                  AND c.cfgtype = 'LOC'
-                  AND l.org = ?
-                  AND vl.USERKEY = ?
+
+        var vdiEnableLocations = """
+                SELECT l.id  , vl.USERKEY
+                                          FROM vdiuserkey vl
+                                                   INNER JOIN vdiproviderinfo vp ON vl.vdiprovider = vp.id
+                                                   INNER JOIN location l ON vl.location = l.id
+                                                   INNER JOIN sfecfg c ON c.name = l.id
+                                          WHERE c.type = 'VDIENABLE'
+                                            AND c.value = 'Y'
+                                            AND c.cfgtype = 'LOC'
+                                            AND vp.name = 'April_01'
+                                            AND l.org = ?;
                 """;
 
-        System.out.println("SQL Query: " + vdiEnableLocationsQuery);
+        System.out.println("SQL Query: " + vdiEnableLocations);
         try (
                 var connection = DriverManager.getConnection(config.dbUrl, config.dbUser, config.dbPassword);
-                var preparedStatement = connection.prepareStatement(vdiEnableLocationsQuery)
+                var preparedStatement = connection.prepareStatement(vdiEnableLocations)
         ) {
             for (OrgEntity org : orgs) {
                 preparedStatement.setString(1, org.getOrg());
-                preparedStatement.setString(2, org.getUserKey());
                 org.setLocations(new ArrayList<>());
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {
                         var locationID = resultSet.getString("id");
+                        var locationUserKey = resultSet.getString("USERKEY");
                         var locAtionEntity = new LocationEntity();
                         locAtionEntity.setLocationId(locationID);
+                        locAtionEntity.setLocationUserKey(locationUserKey);
                         locAtionEntity.setProductIds(new ArrayList<>());
                         org.getLocations().add(locAtionEntity);
                     }
@@ -194,6 +196,7 @@ public class JsonFilesGenerator {
     }
 
     public List<VdiProductEntity> findAllByProductIds(List<String> productIds) {
+        if (productIds == null || productIds.isEmpty()) return new ArrayList<>();
         List<VdiProductEntity> resultList = new ArrayList<>();
 
         String query = "SELECT * FROM product WHERE product.id in (";

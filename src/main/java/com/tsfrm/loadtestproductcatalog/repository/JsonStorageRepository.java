@@ -1,5 +1,10 @@
 package com.tsfrm.loadtestproductcatalog.repository;
 
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -14,17 +19,28 @@ import com.tsfrm.loadtestproductcatalog.domain.jsonEntity.VdiProductJsonEntity;
 import com.tsfrm.loadtestproductcatalog.service.JsonEntityConverter;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class JsonStorageRepository {
 
+    private static final Logger log = LogManager.getLogger(JsonStorageRepository.class);
     public final String PRODUCTS_STORAGE = System.getenv("PRODUCTS_STORAGE_PATH") != null ? System.getenv("PRODUCTS_STORAGE_PATH") : "src/main/resources/storage/product-storage.json";
     public final String LOCATIONS_STORAGE = System.getenv("LOCATIONS_STORAGE_PATH") != null ? System.getenv("LOCATIONS_STORAGE_PATH") : "src/main/resources/storage/location-storage.json";
     public final String ORGS_STORAGE = System.getenv("ORGS_STORAGE_PATH") != null ? System.getenv("ORGS_STORAGE_PATH") : "src/main/resources/storage/org-storage.json";
 
+    public final String BUCKET_NAME = System.getenv("BUCKET_NAME") != null ? System.getenv("BUCKET_NAME") : "orgsstorage";
+    public final String BUCKET_ORGS_KEY = System.getenv("BUCKET_ORGS_KEY") != null ? System.getenv("BUCKET_ORGS_KEY") : "s3://orgsstorage/location-storage.json";
+    public final String BUCKET_LOCATIONS_KEY = System.getenv("BUCKET_LOCATIONS_KEY") != null ? System.getenv("BUCKET_LOCATIONS_KEY") : "s3://orgsstorage/org-storage.json";
+    public final String BUCKET_PRODUCTS_KEY = System.getenv("BUCKET_PRODUCTS_KEY") != null ? System.getenv("BUCKET_PRODUCTS_KEY") : "s3://orgsstorage/product-storage.json";
+
+    private AmazonS3 s3Client;
     private JsonEntityConverter converter;
 
     @Setter
@@ -39,6 +55,7 @@ public class JsonStorageRepository {
         this.converter = new JsonEntityConverter();
         this.orgs = new HashSet<>();
         this.orgLocProductMap = new HashMap<>();
+        s3Client = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_NORTH_1).build();
         readProcessing();
     }
 
@@ -60,16 +77,29 @@ public class JsonStorageRepository {
             orgJsonList.add(converter.orgToJson(org));
         }
 
-        writeJsonFile(productJsonList, PRODUCTS_STORAGE);
-        writeJsonFile(locationJsonList, LOCATIONS_STORAGE);
-        writeJsonFile(orgJsonList, ORGS_STORAGE);
+        //s3 bucket
+        writeJsonFileToS3(productJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
+        writeJsonFileToS3(locationJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
+        writeJsonFileToS3(orgJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
+
+        // local storage
+//        writeJsonFile(productJsonList, PRODUCTS_STORAGE);
+//        writeJsonFile(locationJsonList, LOCATIONS_STORAGE);
+//        writeJsonFile(orgJsonList, ORGS_STORAGE);
     }
 
 
     public void readProcessing() {
-        var productsJson = readProductsJson(PRODUCTS_STORAGE);
-        var locationsJson = readLocationsJson(LOCATIONS_STORAGE);
-        var orgsJson = readOrgsJson(ORGS_STORAGE);
+
+        //local storage
+//        var productsJson = readProductsJson(PRODUCTS_STORAGE);
+//        var locationsJson = readLocationsJson(LOCATIONS_STORAGE);
+//        var orgsJson = readOrgsJson(ORGS_STORAGE);
+
+        //s3 storage
+        var productsJson = readProductsJsonFromS3(BUCKET_NAME, BUCKET_PRODUCTS_KEY);
+        var locationsJson = readLocationsJsonFromS3(BUCKET_NAME, BUCKET_LOCATIONS_KEY);
+        var orgsJson = readOrgsJsonFromS3(BUCKET_NAME, BUCKET_ORGS_KEY);
 
         productsJson.removeIf(Objects::isNull);
         var generalMap = new HashMap<String, Map<String, HashSet<VdiProductEntity>>>();
@@ -78,7 +108,9 @@ public class JsonStorageRepository {
         for (OrgJsonEntity o : orgsJson) {
             generalMap.putIfAbsent(o.getOrg(), new HashMap<>());
             for (LocationJsonEntity l : locationsJson) {
-                generalMap.get(o.getOrg()).putIfAbsent(l.getLocationId(), new HashSet<>());
+                if (l.getOrgId().equals(o.getOrg())) {
+                    generalMap.get(o.getOrg()).putIfAbsent(l.getLocationId(), new HashSet<>());
+                }
             }
         }
         for (VdiProductJsonEntity p : productsJson) {
@@ -109,14 +141,17 @@ public class JsonStorageRepository {
             for (Map.Entry<String, HashSet<VdiProductEntity>> locEntry : locMap.entrySet()) {
                 var locId = locEntry.getKey();
                 var productIdList = locEntry.getValue().stream().map(VdiProductEntity::getId).toList();
+                var locUserKey = locationsJson.stream().filter(loc -> loc.getLocationId().equals(locId)).map(LocationJsonEntity::getLocationUserKey).findFirst().orElse(null);
                 var locEntity = new LocationEntity();
                 locEntity.setLocationId(locId);
+                locEntity.setLocationUserKey(locUserKey);
                 locEntity.setProductIds(productIdList);
                 orgEntity.getLocations().add(locEntity);
             }
             orgsToUpdate.add(orgEntity);
         }
         this.orgs = orgsToUpdate;
+        log.info("Data uploaded to memory. Orgs quantity: " + orgs.size());
     }
 
     private void writeJsonFile(Set<? extends BaseJsonEntity> data, String filePath) {
@@ -127,8 +162,7 @@ public class JsonStorageRepository {
         try {
             var outputFile = new File(filePath);
             objectMapper.writeValue(outputFile, data);
-
-            System.out.println("Data successfully added: " + outputFile.getAbsolutePath());
+            log.info("Data successfully added: " + outputFile.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -179,6 +213,87 @@ public class JsonStorageRepository {
             e.printStackTrace();
         }
 
+        return new ArrayList<>();
+    }
+
+    public void writeJsonFileToS3(Set<? extends BaseJsonEntity> data, String bucketName, String key) {
+        var objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+        try {
+            var jsonString = objectMapper.writeValueAsString(data);
+            byte[] contentBytes = jsonString.getBytes(StandardCharsets.UTF_8);
+            var inputStream = new ByteArrayInputStream(contentBytes);
+            var metadata = new ObjectMetadata();
+            metadata.setContentLength(contentBytes.length);
+            s3Client.putObject(bucketName, key, inputStream, metadata);
+            log.info("Data successfully added to S3 bucket: " + bucketName + "/" + key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private List<VdiProductJsonEntity> readProductsJsonFromS3(String bucketName, String key) {
+        var objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+        try {
+            var s3Object = s3Client.getObject(bucketName, key);
+            var reader = new BufferedReader(new InputStreamReader(s3Object.getObjectContent()));
+            var content = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line);
+            }
+            return objectMapper.readValue(content.toString(), new TypeReference<>() {
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
+
+    private List<LocationJsonEntity> readLocationsJsonFromS3(String bucketName, String key) {
+        var objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+        try {
+            var s3Object = s3Client.getObject(bucketName, key);
+            var reader = new BufferedReader(new InputStreamReader(s3Object.getObjectContent()));
+            var content = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line);
+            }
+            return objectMapper.readValue(content.toString(), new TypeReference<>() {
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
+
+    private List<OrgJsonEntity> readOrgsJsonFromS3(String bucketName, String key) {
+        var objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+        try {
+            var s3Object = s3Client.getObject(bucketName, key);
+            var reader = new BufferedReader(new InputStreamReader(s3Object.getObjectContent()));
+            var content = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line);
+            }
+            return objectMapper.readValue(content.toString(), new TypeReference<>() {
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return new ArrayList<>();
     }
 }
