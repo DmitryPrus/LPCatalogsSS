@@ -10,7 +10,7 @@ DESTINATION_URL - destination endpoint for sending messages
 AUTH_TOKEN - auth token for DESTINATION_URL
 HEADER_PROVIDER_NAME - name of available provider (default "April_01")
 OUTBOUND_THREADS_QUANTITY - Number of messages sending at the same time (default 3)
-LOCATIONS_PER_OPERATOR_MINIMUM - params which let us remove organizations containing less than N locations (default: 1)
+LOCATIONS_PER_OPERATOR_MINIMUM - params which let  us remove organizations containing less than N locations (default: 1)
 
 BUCKET_NAME - name of storage bucket (default: orgsstorage)
 BUCKET_ORGS_KEY - name of file which contains organizations in bucket (default: org-storage.json)
