@@ -17,8 +17,8 @@ BUCKET_ORGS_KEY - name of file which contains organizations in bucket (default: 
 BUCKET_LOCATIONS_KEY - name of file which contains locations in bucket (default: location-storage.json)
 BUCKET_PRODUCTS_KEY - name of file which contains products in bucket (default: product-storage.json)
 
-AWS_ACCESS_KE - AWS user's access key (probably create a new user for it)
-AWS_SECRET_KE - AWS user's secret key
+USER_KEY - AWS user's access key (probably create a new user for it)
+USER_PASS - AWS user's ****
 ```
 
 ## Testing the Lambda Function

@@ -26,8 +26,8 @@ public class LambdaController implements RequestHandler<TestFormData, String> {
                         BUCKET_ORGS_KEY: %s
                         BUCKET_LOCATIONS_KEY: %s
                         BUCKET_PRODUCTS_KEY: %s
-                        AWS_ACCESS_KE: %s
-                        AWS_SECRET_KE: %s
+                        USER_KEY: %s
+                        USER_PASS: %s
                         """,
                 System.getenv("DESTINATION_URL"),
                 System.getenv("AUTH_TOKEN"),
@@ -38,8 +38,8 @@ public class LambdaController implements RequestHandler<TestFormData, String> {
                 System.getenv("BUCKET_ORGS_KEY"),
                 System.getenv("BUCKET_LOCATIONS_KEY"),
                 System.getenv("BUCKET_PRODUCTS_KEY"),
-                System.getenv("AWS_ACCESS_KE"),
-                System.getenv("AWS_SECRET_KE")
+                System.getenv("USER_KEY"),
+                System.getenv("USER_PASS")
         );
 
         log.info("Run with data: \n" + message);

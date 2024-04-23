@@ -37,8 +37,8 @@ public class JsonStorageRepository {
     private final String LOCATIONS_STORAGE = System.getenv("LOCATIONS_STORAGE_PATH") != null ? System.getenv("LOCATIONS_STORAGE_PATH") : "src/main/resources/storage/location-storage.json";
     private final String ORGS_STORAGE = System.getenv("ORGS_STORAGE_PATH") != null ? System.getenv("ORGS_STORAGE_PATH") : "src/main/resources/storage/org-storage.json";
 
-    private final String AWS_ACCESS_KE = System.getenv("AWS_ACCESS_KE") != null ? System.getenv("AWS_ACCESS_KE") : "AKIAS2A3QYOTSMXRMWWE";
-    private final String AWS_SECRET_KE = System.getenv("AWS_SECRET_KE") != null ? System.getenv("AWS_SECRET_KE") : "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";
+    private final String USER_KEY = System.getenv("USER_KEY") != null ? System.getenv("USER_KEY") : "";
+    private final String USER_PASS = System.getenv("USER_PASS") != null ? System.getenv("USER_PASS") : "";
 
     private final String BUCKET_NAME = System.getenv("BUCKET_NAME") != null ? System.getenv("BUCKET_NAME") : "orgsstorage";
     private final String BUCKET_ORGS_KEY = System.getenv("BUCKET_ORGS_KEY") != null ? System.getenv("BUCKET_ORGS_KEY") : "org-storage.json";
@@ -62,7 +62,7 @@ public class JsonStorageRepository {
         this.orgLocProductMap = new HashMap<>();
         s3Client = AmazonS3ClientBuilder
                 .standard()
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(AWS_ACCESS_KE, AWS_SECRET_KE)))
+                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(USER_KEY, USER_PASS)))
                 .withRegion(Regions.EU_NORTH_1).build();
         readProcessing();
     }
