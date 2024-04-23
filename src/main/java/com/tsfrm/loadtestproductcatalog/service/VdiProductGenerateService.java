@@ -282,6 +282,8 @@ public class VdiProductGenerateService {
             throw new ValidationException("Operators must contain value >0");
         if (request.getLocations() == 0)
             throw new ValidationException("Locations must contain value >0");
+        if (request.getNewProducts()> 5000)
+            throw new ValidationException("Too many products to create");
         orgEntities.forEach(o -> {
             if (o.getLocations().size() < request.getLocations())
                 throw new ValidationException(String.format("Too many locations. Organization  %s contains %d locations. But required %d . %s", o.getOrg(), o.getLocations().size(), request.getLocations(), recommendation));
