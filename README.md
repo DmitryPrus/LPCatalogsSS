@@ -7,7 +7,6 @@
 
 ```
 DESTINATION_URL - destination endpoint for sending messages
-AUTH_TOKEN - auth token for DESTINATION_URL
 HEADER_PROVIDER_NAME - name of available provider (default "April_01")
 OUTBOUND_THREADS_QUANTITY - Number of messages sending at the same time (default 3)
 LOCATIONS_PER_OPERATOR_MINIMUM - params which let us remove organizations containing less than N locations (default: 1)
