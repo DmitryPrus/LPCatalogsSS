@@ -46,7 +46,8 @@ public class RunTestService {
                 executorService.execute(requestProcessor);
             }
             executorService.shutdown();
-            while (!executorService.isTerminated()) {}
+            while (!executorService.isTerminated()) {
+            }
             log.info("All messages have been processed successfully.");
             jsonStorageRepository.writeProcessing(); // update of json files
             jsonStorageRepository.readProcessing();

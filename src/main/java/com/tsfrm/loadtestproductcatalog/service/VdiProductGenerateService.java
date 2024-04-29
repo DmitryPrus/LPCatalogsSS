@@ -300,7 +300,7 @@ public class VdiProductGenerateService {
         if (request.getOperators() <= 0) throw new ValidationException("Operators must contain value >0");
         if (request.getLocations() <= 0) throw new ValidationException("Locations must contain value >0");
         if (request.getNewProducts() > 5000) throw new ValidationException("Too many products to create");
-        if (request.getProductsToUpdate()<=0 && request.getProductsToDelete() <=0  && request.getNewProducts()<=0)
+        if (request.getProductsToUpdate() <= 0 && request.getProductsToDelete() <= 0 && request.getNewProducts() <= 0)
             throw new ValidationException("There are no data to modify");
 
         if (request.getOperators() > orgEntities.size())

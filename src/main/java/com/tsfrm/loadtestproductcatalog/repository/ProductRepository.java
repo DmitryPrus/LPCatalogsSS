@@ -35,7 +35,7 @@ public class ProductRepository extends BaseRepository<VdiProductEntity> {
         var resultList = new ArrayList<VdiProductEntity>();
         ids.forEach(id -> {
             var item = productIdsMap.get(id);
-            if (item!=null) resultList.add(item);
+            if (item != null) resultList.add(item);
         });
         return resultList;
     }

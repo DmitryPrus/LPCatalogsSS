@@ -54,7 +54,7 @@ public class LambdaController implements RequestHandler<APIGatewayProxyRequestEv
             var mapper = new ObjectMapper();
             var testFormData = mapper.readValue(event.getBody(), TestFormData.class);
             var validationMessage = requestInvalidMessage(testFormData);
-            if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. "+ validationMessage;
+            if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage;
 
             runTestService = new RunTestService(destinationUrl, testFormData.getAuthToken(), threadsQuantity);
             return runTestService.runTest(testFormData);
@@ -67,11 +67,13 @@ public class LambdaController implements RequestHandler<APIGatewayProxyRequestEv
         if (req == null) return "No request provided";
         if (req.getOperators() <= 0) return "'Operators' must be > 0. Provided: " + req.getOperators();
         if (req.getLocations() <= 0) return "'Locations' must be > 0. Provided: " + req.getLocations();
-        if (req.getNewProducts() < 0 || req.getNewProducts() > 5000) return "New products quantity possible range is 0..5000; Provided: " + req.getNewProducts();
+        if (req.getNewProducts() < 0 || req.getNewProducts() > 5000)
+            return "New products quantity possible range is 0..5000; Provided: " + req.getNewProducts();
         if (req.getProductsToUpdate() < 0) return "Invalid 'productsToUpdate': " + req.getProductsToUpdate();
-        if (req.getProductsToDelete() <0) return "Invalid 'productsToDelete': " + req.getProductsToDelete();
+        if (req.getProductsToDelete() < 0) return "Invalid 'productsToDelete': " + req.getProductsToDelete();
         if (StringUtils.isNullOrEmpty(req.getAuthToken())) return "Required token";
-        if (req.getProductsToUpdate()<=0 && req.getProductsToDelete() <=0  && req.getNewProducts()<=0) return "There are no data to modify";
+        if (req.getProductsToUpdate() <= 0 && req.getProductsToDelete() <= 0 && req.getNewProducts() <= 0)
+            return "There are no data to modify";
         return null;
     }
 }
