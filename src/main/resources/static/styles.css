@@ -28,6 +28,13 @@ input[type="number"] {
     border-radius: 4px;
 }
 
+input[type="text"] {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
 button[type="submit"] {
     display: block;
     width: 100%;

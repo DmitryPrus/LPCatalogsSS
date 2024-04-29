@@ -6,14 +6,19 @@ document.getElementById('submitForm').addEventListener('submit', function(event)
     const newProducts = document.getElementById('newProducts').value;
     const productsToDelete = document.getElementById('productsToDelete').value;
     const productsToUpdate = document.getElementById('productsToUpdate').value;
+    const token = document.getElementById('authToken').value;
 
     const formData = {
         operators: operators,
         locations: locations,
         newProducts: newProducts,
         productsToDelete: productsToDelete,
-        productsToUpdate: productsToUpdate
+        productsToUpdate: productsToUpdate,
+        token: token
     };
+
+    const resultWindow = document.getElementById('resultWindow');
+    resultWindow.innerHTML = '';
 
     fetch('/runtest', {
         method: 'POST',
@@ -30,8 +35,6 @@ document.getElementById('submitForm').addEventListener('submit', function(event)
             }
         })
         .then(result => {
-            const resultWindow = document.getElementById('resultWindow');
-
             const responseArea = document.createElement('div');
             responseArea.classList.add('response-area');
 
@@ -41,7 +44,6 @@ document.getElementById('submitForm').addEventListener('submit', function(event)
             responseArea.appendChild(responseLabel);
             responseArea.appendChild(document.createTextNode(result));
 
-            resultWindow.innerHTML = '';
             resultWindow.appendChild(responseArea);
         })
         .catch(error => {

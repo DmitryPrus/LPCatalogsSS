@@ -14,5 +14,5 @@ public class TestFormData {
     private int newProducts;
     private int productsToDelete;
     private int productsToUpdate;
-    private String token;
+    private String authToken;
 }

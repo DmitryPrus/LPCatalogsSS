@@ -25,9 +25,9 @@ public class JsonFilesGenerator {
         JsonFilesGenerator jfg = new JsonFilesGenerator();
         jfg.readDatabaseDataAndStoreToJson();
 //        String url = System.getenv("DESTINATION_URL") != null ? System.getenv("DESTINATION_URL") : "http://localhost:8082/mmsproducts/1/localtest";
-//        Integer threadsQuantity = System.getenv("OUTBOUND_THREADS_QUANTITY") != null ? Integer.parseInt(System.getenv("OUTBOUND_THREADS_QUANTITY")) : 20;
-//        RunTestService rt = new RunTestService(url, threadsQuantity);
-//        System.out.println();
+//        Integer threadsQuantity = System.getenv("OUTBOUND_THREADS_QUANTITY") != null ? Integer.parseInt(System.getenv("OUTBOUND_THREADS_QUANTITY")) : 2;
+//        RunTestService rt = new RunTestService(url, "", threadsQuantity);
+        System.out.println();
     }
 
     private void readDatabaseDataAndStoreToJson() throws SQLException {

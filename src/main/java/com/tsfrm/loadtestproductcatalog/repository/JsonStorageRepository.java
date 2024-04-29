@@ -7,9 +7,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.tsfrm.loadtestproductcatalog.domain.entity.LocationEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
@@ -86,30 +89,29 @@ public class JsonStorageRepository {
         }
 
         //s3 bucket
-        writeJsonFileToS3(productJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
-        writeJsonFileToS3(locationJsonList, BUCKET_NAME, BUCKET_LOCATIONS_KEY);
-        writeJsonFileToS3(orgJsonList, BUCKET_NAME, BUCKET_ORGS_KEY);
+//        writeJsonFileToS3(productJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
+//        writeJsonFileToS3(locationJsonList, BUCKET_NAME, BUCKET_LOCATIONS_KEY);
+//        writeJsonFileToS3(orgJsonList, BUCKET_NAME, BUCKET_ORGS_KEY);
 
         // local storage
-//        writeJsonFile(productJsonList, PRODUCTS_STORAGE);
-//        writeJsonFile(locationJsonList, LOCATIONS_STORAGE);
-//        writeJsonFile(orgJsonList, ORGS_STORAGE);
+        writeJsonFile(productJsonList, PRODUCTS_STORAGE);
+        writeJsonFile(locationJsonList, LOCATIONS_STORAGE);
+        writeJsonFile(orgJsonList, ORGS_STORAGE);
     }
 
 
     public void readProcessing() {
 
         //local storage
-//        var productsJson = readProductsJson(PRODUCTS_STORAGE);
-//        var locationsJson = readLocationsJson(LOCATIONS_STORAGE);
-//        var orgsJson = readOrgsJson(ORGS_STORAGE);
+        var productsJson = readJsonFromLocalStorage(PRODUCTS_STORAGE, new TypeReference<List<VdiProductJsonEntity>>() {});
+        var locationsJson = readJsonFromLocalStorage(LOCATIONS_STORAGE, new TypeReference<List<LocationJsonEntity>>() {});
+        var orgsJson = readJsonFromLocalStorage(ORGS_STORAGE, new TypeReference<List<OrgJsonEntity>>() {});
 
         //s3 storage
-        var productsJson = readProductsJsonFromS3(BUCKET_NAME, BUCKET_PRODUCTS_KEY);
-        var locationsJson = readLocationsJsonFromS3(BUCKET_NAME, BUCKET_LOCATIONS_KEY);
-        var orgsJson = readOrgsJsonFromS3(BUCKET_NAME, BUCKET_ORGS_KEY);
+//        var productsJson = readJsonFromS3(BUCKET_NAME, BUCKET_PRODUCTS_KEY, new TypeReference<List<VdiProductJsonEntity>>() {});
+//        var locationsJson = readJsonFromS3(BUCKET_NAME, BUCKET_PRODUCTS_KEY, new TypeReference<List<LocationJsonEntity>>() {});
+//        var orgsJson = readJsonFromS3(BUCKET_NAME, BUCKET_PRODUCTS_KEY, new TypeReference<List<OrgJsonEntity>>() {});
 
-        productsJson.removeIf(Objects::isNull);
         var generalMap = new HashMap<String, Map<String, HashSet<VdiProductEntity>>>();
 
         productsJson.removeIf(Objects::isNull);
@@ -149,7 +151,11 @@ public class JsonStorageRepository {
             for (Map.Entry<String, HashSet<VdiProductEntity>> locEntry : locMap.entrySet()) {
                 var locId = locEntry.getKey();
                 var productIdList = locEntry.getValue().stream().map(VdiProductEntity::getId).toList();
-                var locUserKey = locationsJson.stream().filter(loc -> loc.getLocationId().equals(locId)).map(LocationJsonEntity::getLocationUserKey).findFirst().orElse(null);
+                var locUserKey = locationsJson.stream()
+                        .filter(loc -> loc.getLocationId().equals(locId))
+                        .map(LocationJsonEntity::getLocationUserKey)
+                        .findFirst()
+                        .orElse(null);
                 var locEntity = new LocationEntity();
                 locEntity.setLocationId(locId);
                 locEntity.setLocationUserKey(locUserKey);
@@ -163,11 +169,10 @@ public class JsonStorageRepository {
     }
 
     private void writeJsonFile(Set<? extends BaseJsonEntity> data, String filePath) {
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
         try {
+            var objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
             var outputFile = new File(filePath);
             objectMapper.writeValue(outputFile, data);
             log.info("Data successfully added: " + outputFile.getAbsolutePath());
@@ -176,52 +181,30 @@ public class JsonStorageRepository {
         }
     }
 
-    private List<VdiProductJsonEntity> readProductsJson(String filePath) {
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    private <T> List<T> readJsonFromLocalStorage(String filePath, TypeReference<List<T>> typeReference) {
+        try (var reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath)))) {
+            var content = new StringBuilder();
+            String line;
+            long bytes = 0;
 
-        try {
-            var inputFile = new File(filePath);
-            return objectMapper.readValue(inputFile, new TypeReference<>() {
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
+            while ((line = reader.readLine()) != null) {
+                content.append(line);
+                bytes += line.getBytes().length;
+                if (bytes > 300_000_000L) { // 300 MB
+                    throw new RuntimeException("The download limit of 300 MB for file " + filePath + " has been exceeded");
+                }
+            }
+            var objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+            return objectMapper.readValue(content.toString(), typeReference);
+        }catch (MismatchedInputException e){
+            log.error("No data to read for path : "+filePath);
+            return new ArrayList<>();
         }
-
-        return new ArrayList<>();
-    }
-
-    private List<LocationJsonEntity> readLocationsJson(String filePath) {
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-        try {
-            var inputFile = new File(filePath);
-            return objectMapper.readValue(inputFile, new TypeReference<>() {
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
+        catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        return new ArrayList<>();
-    }
-
-    private List<OrgJsonEntity> readOrgsJson(String filePath) {
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-        try {
-            var inputFile = new File(filePath);
-            return objectMapper.readValue(inputFile, new TypeReference<>() {
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return new ArrayList<>();
     }
 
     public void writeJsonFileToS3(Set<? extends BaseJsonEntity> data, String bucketName, String key) {
@@ -242,66 +225,38 @@ public class JsonStorageRepository {
         }
     }
 
-    private List<VdiProductJsonEntity> readProductsJsonFromS3(String bucketName, String key) {
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
+    private <T> List<T> readJsonFromS3(String bucketName, String key, TypeReference<List<T>> typeReference) {
         try {
-            var s3Object = s3Client.getObject(bucketName, key);
-            var reader = new BufferedReader(new InputStreamReader(s3Object.getObjectContent()));
-            var content = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line);
-            }
-            return objectMapper.readValue(content.toString(), new TypeReference<>() {
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
+            var objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+            var content = getJsonValueFromS3AsString(bucketName, key);
+            return objectMapper.readValue(content, typeReference);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
-        return new ArrayList<>();
     }
 
-    private List<LocationJsonEntity> readLocationsJsonFromS3(String bucketName, String key) {
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-        try {
-            var s3Object = s3Client.getObject(bucketName, key);
-            var reader = new BufferedReader(new InputStreamReader(s3Object.getObjectContent()));
+    private String getJsonValueFromS3AsString(String bucketName, String key) {
+        try (
+                var s3Object = s3Client.getObject(bucketName, key);
+                var reader = new BufferedReader(new InputStreamReader(s3Object.getObjectContent()))
+        ) {
             var content = new StringBuilder();
             String line;
+            long bytes = 0;
+
             while ((line = reader.readLine()) != null) {
                 content.append(line);
+                bytes += line.getBytes().length;
+                if (bytes > 300_000_000L) { // 300 mb
+                    throw new RuntimeException("The download limit of 128 MB for file " + bucketName + " has been exceeded");
+                }
             }
-            return objectMapper.readValue(content.toString(), new TypeReference<>() {
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<>();
-    }
+            return content.toString();
 
-    private List<OrgJsonEntity> readOrgsJsonFromS3(String bucketName, String key) {
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-        try {
-            var s3Object = s3Client.getObject(bucketName, key);
-            var reader = new BufferedReader(new InputStreamReader(s3Object.getObjectContent()));
-            var content = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line);
-            }
-            return objectMapper.readValue(content.toString(), new TypeReference<>() {
-            });
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return new ArrayList<>();
     }
 }

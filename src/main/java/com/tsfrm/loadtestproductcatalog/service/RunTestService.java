@@ -19,11 +19,13 @@ public class RunTestService {
     private static final Logger log = LogManager.getLogger(RunTestService.class);
 
     public RunTestService(String httpUrl, String authUrlToken, Integer threadsQuantity) {
+        log.info("Initialization started. Don't run your test");
         this.jsonStorageRepository = new JsonStorageRepository();
         this.vdiProductGenerateService = new VdiProductGenerateService(jsonStorageRepository);
         this.httpUrl = httpUrl;
         this.authUrlToken = authUrlToken;
         this.threadsQuantity = threadsQuantity;
+        log.info("Initialization completed. Extracted " + jsonStorageRepository.getOrgs().size() + " orgs for VDI2");
     }
 
     public String runTestSpringController(TestFormData testFormData) {
@@ -44,12 +46,11 @@ public class RunTestService {
                 executorService.execute(requestProcessor);
             }
             executorService.shutdown();
-            while (!executorService.isTerminated()) {
-            }
-            log.info("All messages have been processed successfully");
+            while (!executorService.isTerminated()) {}
+            log.info("All messages have been processed successfully.");
             jsonStorageRepository.writeProcessing(); // update of json files
             jsonStorageRepository.readProcessing();
-            return "All messages have been processed successfully";
+            return "All messages have been processed successfully. Check status of http response in logs";
         } catch (Exception e) {
             return e.getMessage();
         }

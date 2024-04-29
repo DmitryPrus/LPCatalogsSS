@@ -1,5 +1,6 @@
 package com.tsfrm.loadtestproductcatalog.repository;
 
+import com.tsfrm.loadtestproductcatalog.domain.VdiProduct;
 import com.tsfrm.loadtestproductcatalog.domain.entity.VdiProductEntity;
 
 import java.util.*;
@@ -24,16 +25,18 @@ public class ProductRepository extends BaseRepository<VdiProductEntity> {
                 .orElse(null);
     }
 
-    public List<VdiProductEntity> findAllByProductIds(List<String> productIds) {
-        return null;
-    }
+    public List<VdiProductEntity> findAllByIds(List<String> ids) {
+        var productIdsMap = new HashMap<String, VdiProductEntity>(20000);
+        jsonStorageRepository.getOrgLocProductMap().values().stream()
+                .flatMap(locProductMap -> locProductMap.values().stream())
+                .flatMap(Set::stream)
+                .forEach(prodEntity -> productIdsMap.put(prodEntity.getId(), prodEntity));
 
-    public List<String> getAllProductIdList() {
-        return null;
-    }
-
-
-    public boolean isIdExists(String productId) {
-        return false;
+        var resultList = new ArrayList<VdiProductEntity>();
+        ids.forEach(id -> {
+            var item = productIdsMap.get(id);
+            if (item!=null) resultList.add(item);
+        });
+        return resultList;
     }
 }

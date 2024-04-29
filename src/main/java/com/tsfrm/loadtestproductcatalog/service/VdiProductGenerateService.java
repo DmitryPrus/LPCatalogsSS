@@ -1,6 +1,7 @@
 package com.tsfrm.loadtestproductcatalog.service;
 
 import com.tsfrm.loadtestproductcatalog.domain.*;
+import com.tsfrm.loadtestproductcatalog.domain.entity.LocationEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.VdiProductEntity;
 import com.tsfrm.loadtestproductcatalog.repository.JdbcConfig;
@@ -20,9 +21,9 @@ import java.util.stream.Collectors;
 
 public class VdiProductGenerateService {
 
-    Random random;
-    ProductRepository productRepository;
-    OrgRepository orgRepository;
+    private Random random;
+    private ProductRepository productRepository;
+    private OrgRepository orgRepository;
     private JsonStorageRepository jsonStorageRepository;
     private JsonEntityConverter converter;
     private static final Logger log = LogManager.getLogger(VdiProductGenerateService.class);
@@ -30,49 +31,67 @@ public class VdiProductGenerateService {
     public VdiProductGenerateService(JsonStorageRepository jsonStorageRepository) {
         this.jsonStorageRepository = jsonStorageRepository;
         this.converter = new JsonEntityConverter();
-        log.info("Initialization started. Don't run your test");
         random = new Random();
         productRepository = new ProductRepository(new JdbcConfig(), jsonStorageRepository);
         orgRepository = new OrgRepository(new JdbcConfig(), jsonStorageRepository);
-        log.info("Initialization completed. Extracted " + jsonStorageRepository.getOrgs().size() + " orgs for VDI2");
     }
 
 
     public List<VdiProductsTransaction> generateMessages(TestFormData request) {
-        var orgsIds = jsonStorageRepository.getOrgs().stream()
-                .map(OrgEntity::getOrg)
-                .collect(Collectors.toList());
+        var allOrgs = new ArrayList<>(jsonStorageRepository.getOrgs().stream().toList());
+        isValid(request, allOrgs);
+        Collections.shuffle(allOrgs);
 
-        if (request.getOperators() > orgsIds.size())
-            throw new ValidationException(String.format("Request validation failed. Too many operators. Requested: %d; available: %d", request.getOperators(), orgsIds.size()));
+        var availableOrgsAndLocationsMap = new HashMap<String, ArrayList<LocationEntity>>();
 
-        Collections.shuffle(orgsIds);
-        var orgs = new ArrayList<OrgEntity>();
-        for (int i = 0; i < request.getOperators(); i++) {
-            for (OrgEntity o : jsonStorageRepository.getOrgs()) {
-                if (o.getOrg().equals(orgsIds.get(i))) orgs.add(o);
+        // logic which allow choose only those orgs/locations which contain available requested quantity
+        // of products/locations for update/delete
+        if (forUpdate(request)) {
+            for (OrgEntity org : allOrgs) {
+                if (org.getLocations().size() < request.getLocations()) continue;
+                for (LocationEntity loc : org.getLocations()) {
+                    if (loc.getProductIds().size() < (request.getProductsToUpdate() + request.getProductsToDelete()))
+                        continue;
+                    availableOrgsAndLocationsMap.putIfAbsent(org.getOrg(), new ArrayList<>());
+                    availableOrgsAndLocationsMap.get(org.getOrg()).add(loc);
+                }
+            }
+        } else { // add all existing orgs and entities as available in case when there are no data for update and delete
+            for (OrgEntity org : allOrgs) {
+                for (LocationEntity loc : org.getLocations()) {
+                    availableOrgsAndLocationsMap.putIfAbsent(org.getOrg(), new ArrayList<>());
+                    availableOrgsAndLocationsMap.get(org.getOrg()).add(loc);
+                }
             }
         }
 
-        isValid(request, orgs);
-        log.info("Request is valid. Generation started");
+        availableOrgsAndLocationsMap.entrySet()
+                .removeIf(entry -> entry.getValue().size() < request.getLocations());
+
+        if (availableOrgsAndLocationsMap.size() < request.getOperators())
+            throw new ValidationException("There are no data for your requested parameters. Reduce number of operators/locations or products to update/delete");
+
 
         var messages = new ArrayList<VdiProductsTransaction>();
+        int orgsHandled = 0;
 
-        // OPERATORS
-        for (OrgEntity o : orgs) {
+        for (OrgEntity o : allOrgs) {
+            if (orgsHandled >= request.getOperators()) break;
+            if (!availableOrgsAndLocationsMap.containsKey(o.getOrg())) continue;
+            var locations = new ArrayList<>(o.getLocations());
             var vpt = new VdiProductsTransaction();
             var marketProductList = new ArrayList<VdiMarketProduct>();
-            var locations = new ArrayList<>(o.getLocations());
             Collections.shuffle(locations);
-            //LOCATIONS per operator
-            for (int i = 0; i < request.getLocations(); i++) {
-                var location = locations.get(i);
+            int locationsHandled = 0;
+            var availableLocationIdsSet = availableOrgsAndLocationsMap.get(o.getOrg()).stream().map(LocationEntity::getLocationId).collect(Collectors.toSet());
+
+            for (LocationEntity location : locations) {
+                if (locationsHandled >= request.getLocations()) break;
+                if (!availableLocationIdsSet.contains(location.getLocationId())) continue;
                 var productIds = new ArrayList<>(location.getProductIds());
                 Collections.shuffle(productIds);
                 var productsToRemove = removeProducts(request.getProductsToDelete(), productIds);
                 var productsToCreate = generateProduct(request.getNewProducts());
-                Collections.shuffle(productIds);
                 var productsToUpdate = updateProducts(request.getProductsToUpdate(), productIds);
                 productsToUpdate.addAll(productsToCreate);
                 marketProductList.add(new VdiMarketProduct(location.getLocationUserKey(), generateCatalogType(), productsToRemove, productsToUpdate));
@@ -101,10 +120,12 @@ public class VdiProductGenerateService {
                                 .get(o.getOrg())
                                 .get(location.getLocationId())::add);
 
+                locationsHandled++;
             }
             vpt.setVdiHeader(generateHeader(o.getUserKey()));
             vpt.setProducts(marketProductList);
             messages.add(vpt);
+            orgsHandled++;
         }
         return messages;
     }
@@ -144,10 +165,11 @@ public class VdiProductGenerateService {
 
     public List<VdiProduct> updateProducts(int numberToUpdate, List<String> productIds) {
         var listToUpdate = new ArrayList<VdiProduct>();
+        var products = productRepository.findAllByIds(productIds);
+        Collections.shuffle(products);
 
         for (int i = 0; i < numberToUpdate; i++) {
-            var productId = productIds.get(i);
-            var pe = productRepository.findById(productId);
+            var pe = products.get(i);
             if (pe == null) continue;
 
             Integer minStock = null;
@@ -163,7 +185,7 @@ public class VdiProductGenerateService {
             }
 
             var productResult = VdiProduct.builder()
-                    .productId(productId)
+                    .productId(pe.getId())
                     .productCode(pe.getScancode())
                     .productName(pe.getName())
                     .shortProductName(pe.getShortname())
@@ -245,7 +267,6 @@ public class VdiProductGenerateService {
     }
 
 
-    // для всех update/create сделаем обновление tax
     private VdiTax generateTaxes() {
         return VdiTax.builder()
                 .taxId(Const.TAX_IDS.get(random.nextInt(Const.TAX_IDS.size())))
@@ -259,7 +280,6 @@ public class VdiProductGenerateService {
     }
 
 
-    // fee always the same
     private VdiFee generateVdiFee() {
         return VdiFee.builder()
                 .feeId(Const.FEE_ID)
@@ -277,26 +297,29 @@ public class VdiProductGenerateService {
     }
 
     private void isValid(TestFormData request, List<OrgEntity> orgEntities) {
-        String recommendation = "Reduce the value of the exceeding parameter or fill database by needed value and bindings.";
-        if (request.getOperators() == 0)
-            throw new ValidationException("Operators must contain value >0");
-        if (request.getLocations() == 0)
-            throw new ValidationException("Locations must contain value >0");
-        if (request.getNewProducts()> 5000)
-            throw new ValidationException("Too many products to create");
-        orgEntities.forEach(o -> {
-            if (o.getLocations().size() < request.getLocations())
-                throw new ValidationException(String.format("Too many locations. Organization  %s contains %d locations. But required %d . %s", o.getOrg(), o.getLocations().size(), request.getLocations(), recommendation));
+        if (request.getOperators() <= 0) throw new ValidationException("Operators must contain value >0");
+        if (request.getLocations() <= 0) throw new ValidationException("Locations must contain value >0");
+        if (request.getNewProducts() > 5000) throw new ValidationException("Too many products to create");
+        if (request.getProductsToUpdate()<=0 && request.getProductsToDelete() <=0  && request.getNewProducts()<=0)
+            throw new ValidationException("There are no data to modify");
 
-            o.getLocations().forEach(l -> {
-                if (l.getProductIds().size() < request.getProductsToUpdate())
-                    throw new ValidationException(String.format("Too many products to update. Location  %s contains %d products. But required %d . %s", l.getLocationId(), l.getProductIds().size(), request.getProductsToUpdate(), recommendation));
+        if (request.getOperators() > orgEntities.size())
+            throw new ValidationException(String.format("Too many operators. Available %s, requested %s", orgEntities.size(), request.getOperators()));
 
-                if (l.getProductIds().size() < request.getProductsToDelete())
-                    throw new ValidationException(String.format("Too many products to delete. Location  %s contains %d products. But required %d . %s", l.getLocationId(), l.getProductIds().size(), request.getProductsToDelete(), recommendation));
-            });
 
-        });
+        if (request.getNewProducts() > 0) {
+            int totalProducts = orgEntities.stream()
+                    .flatMap(org -> org.getLocations().stream())
+                    .mapToInt(loc -> loc.getProductIds().size())
+                    .sum();
+            log.info("Products in storage: " + totalProducts);
+            if (totalProducts > 300000)
+                throw new ValidationException("New products creation restriction. Too many existing products [" + totalProducts + "]. Use 'newProducts' as 0 , and try again");
+        }
+    }
+
+    private boolean forUpdate(TestFormData testFormData) {
+        return testFormData.getProductsToUpdate() + testFormData.getProductsToDelete() > 0;
     }
 
 }
