@@ -59,7 +59,7 @@ public class LambdaController implements RequestHandler<APIGatewayProxyRequestEv
             runTestService = new RunTestService(destinationUrl, testFormData.getAuthToken(), threadsQuantity);
             return runTestService.runTest(testFormData);
         } catch (JsonProcessingException e) {
-            return e.getMessage();
+            return "Error. " + e.getMessage();
         }
     }
 
