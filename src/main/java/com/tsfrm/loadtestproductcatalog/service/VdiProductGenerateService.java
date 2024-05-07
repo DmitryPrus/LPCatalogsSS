@@ -184,11 +184,12 @@ public class VdiProductGenerateService {
             } catch (Exception ignored) {
             }
 
+            var shortName = (pe.getShortname() != null) ? pe.getShortname() : pe.getName();
             var productResult = VdiProduct.builder()
                     .productId(pe.getId())
                     .productCode(pe.getScancode())
                     .productName(pe.getName())
-                    .shortProductName(pe.getShortname())
+                    .shortProductName(shortName)
                     .categoryCode(pe.getCategory1())
                     .categoryName(pe.getCategory1())
                     .cost(generateNumberValue(0.01, 10))
