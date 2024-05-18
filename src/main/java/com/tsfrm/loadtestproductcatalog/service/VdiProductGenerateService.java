@@ -202,7 +202,7 @@ public class VdiProductGenerateService {
                     .productImage(null)
                     .productSKUs(List.of(generateProductSKU()))
                     .productAttributes(List.of(generateAttributes()))
-                    .barCodes(List.of(generateBarCode()))
+                    .barCodes(List.of(new VdiBarCode(pe.getScancode())))
                     .taxes(List.of(generateTaxes()))
                     .fees(List.of(generateVdiFee()))
                     .nutritions(new ArrayList<>())
