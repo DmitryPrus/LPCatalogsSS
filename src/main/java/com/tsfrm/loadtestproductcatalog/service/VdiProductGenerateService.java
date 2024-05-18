@@ -69,7 +69,7 @@ public class VdiProductGenerateService {
                 .removeIf(entry -> entry.getValue().size() < request.getLocations());
 
         if (availableOrgsAndLocationsMap.size() < request.getOperators())
-            throw new ValidationException("There are no data for your requested parameters. Reduce number of operators/locations or products to update/delete");
+            throw new ValidationException("There are no data for your requested parameters. Reduce number of operators/locations or products to update/delete for "+ request);
 
 
         var messages = new ArrayList<VdiProductsTransaction>();

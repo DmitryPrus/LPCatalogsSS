@@ -66,6 +66,8 @@ public class LambdaController implements RequestHandler<APIGatewayProxyRequestEv
     private String requestInvalidMessage(TestFormData req) {
         if (req == null) return "No request provided";
         if (req.getOperators() <= 0) return "'Operators' must be > 0. Provided: " + req.getOperators();
+        if (!StringUtils.isNullOrEmpty(req.getExactoperator()) && req.getOperators()!=1)
+            return "'Operators' quantity required = 1 for provided chosen operator "+ req.getExactoperator();
         if (req.getLocations() <= 0) return "'Locations' must be > 0. Provided: " + req.getLocations();
         if (req.getNewProducts() < 0 || req.getNewProducts() > 5000)
             return "New products quantity possible range is 0..5000; Provided: " + req.getNewProducts();

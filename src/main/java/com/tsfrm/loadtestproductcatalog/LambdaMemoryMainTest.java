@@ -18,7 +18,7 @@ public class LambdaMemoryMainTest {
         int productsToUpdate = 20000;
         var authToken = "token";
 
-        var testFromData = new TestFormData(operators, locations, newProducts, productsToDelete, productsToUpdate, authToken);
+        var testFromData = new TestFormData(operators, null, locations, newProducts, productsToDelete, productsToUpdate, authToken);
         LambdaMemoryMainTest lt = new LambdaMemoryMainTest();
         System.out.println(lt.handleRequest(destinationUrl, testFromData));
     }
