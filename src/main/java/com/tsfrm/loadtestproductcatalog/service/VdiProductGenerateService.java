@@ -255,7 +255,8 @@ public class VdiProductGenerateService {
     }
 
     private VdiBarCode generateBarCode() {
-        return new VdiBarCode("BarCode1");
+        var barcode = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16);
+        return new VdiBarCode(barcode);
     }
 
     private VdiProductAttribute generateAttributes() {
