@@ -186,7 +186,7 @@ public class VdiProductGenerateService {
 
             var shortName = (pe.getShortname() != null) ? pe.getShortname() : pe.getName();
             var productResult = VdiProduct.builder()
-                    .productId(pe.getId())
+                    .productId(pe.getUserkey()) //USERKEY IS productId for JSON
                     .productCode(pe.getScancode())
                     .productName(pe.getName())
                     .shortProductName(shortName)

@@ -14,7 +14,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VdiProductJsonEntity extends BaseJsonEntity {
-    private String id;
+    private String id; // means nothing
     private String org;
     private String name;
     private String shortname;
@@ -24,7 +24,7 @@ public class VdiProductJsonEntity extends BaseJsonEntity {
     private String category2;
     private String category3;
     private String status;
-    private String userkey;
+    private String userkey; // means productId for outbound final test JSON
     private BigDecimal cost;
     private BigDecimal price;
     private BigDecimal tax;
@@ -44,11 +44,11 @@ public class VdiProductJsonEntity extends BaseJsonEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VdiProductJsonEntity that = (VdiProductJsonEntity) o;
-        return Objects.equals(id, that.id) && Objects.equals(org, that.org) && Objects.equals(location, that.location);
+        return Objects.equals(userkey, that.userkey) && Objects.equals(org, that.org) && Objects.equals(location, that.location);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, org, location);
+        return Objects.hash(userkey, org, location);
     }
 }

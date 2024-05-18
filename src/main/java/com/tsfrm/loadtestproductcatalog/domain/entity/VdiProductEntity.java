@@ -14,7 +14,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VdiProductEntity {
-    private String id;
+    private String id;  // means nothing
     private String org;
     private String name;
     private String shortname;
@@ -24,7 +24,7 @@ public class VdiProductEntity {
     private String category2;
     private String category3;
     private String status;
-    private String userkey;
+    private String userkey;  // is productId for outbound json
     private BigDecimal cost;
     private BigDecimal price;
     private BigDecimal tax;
@@ -42,11 +42,9 @@ public class VdiProductEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VdiProductEntity that = (VdiProductEntity) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(userkey, that.userkey);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+    public int hashCode() {return Objects.hash(userkey);}
 }
