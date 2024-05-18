@@ -1,5 +1,6 @@
 package com.tsfrm.loadtestproductcatalog.service;
 
+import com.amazonaws.util.StringUtils;
 import com.tsfrm.loadtestproductcatalog.domain.*;
 import com.tsfrm.loadtestproductcatalog.domain.entity.LocationEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
@@ -42,12 +43,14 @@ public class VdiProductGenerateService {
         isValid(request, allOrgs);
         Collections.shuffle(allOrgs);
 
+        //                                             orgId
         var availableOrgsAndLocationsMap = new HashMap<String, ArrayList<LocationEntity>>();
 
         // logic which allow choose only those orgs/locations which contain available requested quantity
         // of products/locations for update/delete
         if (forUpdate(request)) {
             for (OrgEntity org : allOrgs) {
+                if (!StringUtils.isNullOrEmpty(request.getExactoperator()) && !request.getExactoperator().equalsIgnoreCase(org.getOrg())) continue;
                 if (org.getLocations().size() < request.getLocations()) continue;
                 for (LocationEntity loc : org.getLocations()) {
                     if (loc.getProductIds().size() < (request.getProductsToUpdate() + request.getProductsToDelete()))
@@ -55,6 +58,7 @@ public class VdiProductGenerateService {
                     availableOrgsAndLocationsMap.putIfAbsent(org.getOrg(), new ArrayList<>());
                     availableOrgsAndLocationsMap.get(org.getOrg()).add(loc);
                 }
+                if (!StringUtils.isNullOrEmpty(request.getExactoperator()) && request.getExactoperator().equalsIgnoreCase(org.getOrg())) break; // only one makes sense
             }
         } else { // add all existing orgs and entities as available in case when there are no data for update and delete
             for (OrgEntity org : allOrgs) {
@@ -69,7 +73,7 @@ public class VdiProductGenerateService {
                 .removeIf(entry -> entry.getValue().size() < request.getLocations());
 
         if (availableOrgsAndLocationsMap.size() < request.getOperators())
-            throw new ValidationException("There are no data for your requested parameters. Reduce number of operators/locations or products to update/delete for "+ request);
+            throw new ValidationException("There are no data for your requested parameters. Reduce number of operators/locations or products to update/delete for request"+ request);
 
 
         var messages = new ArrayList<VdiProductsTransaction>();
