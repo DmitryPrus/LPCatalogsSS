@@ -3,43 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QA testproduct</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>JSON Sender</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        label {
+            margin-bottom: 5px;
+            text-align: right;
+            font-weight: bold;
+            display: inline-block;
+            width: 200px; /* Ширина для выравнивания */
+        }
+        input {
+            width: 200px;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+        }
+        select {
+            width: 218px;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+        }
+        input::placeholder {
+            color: gray;
+        }
+        button {
+            padding: 10px 60px;
+            background-color: #00BFFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1E90FF;
+        }
+        button.loading {
+            pointer-events: none; /* Запрещаем события мыши, чтобы предотвратить повторные нажатия */
+            opacity: 0.7; /* Устанавливаем прозрачность для обозначения недоступности */
+        }
+        button.loading:after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        #response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
 </head>
 <body>
-<h1>Load test product catalogs</h1>
+<div>
+    <label for="operators">operators #:</label>
+    <input type="number" id="operators" placeholder="Quantity of operators">
+</div>
+<div>
+    <label for="exactoperator">Choosen operator:</label>
+    <select id="exactoperator">
+        <option value="">Random</option>
+        <option value="b14f997eb1e968be03ee9f5c69c78a0d">VDI_Latest_2.0</option>
+        <option value="00c9d90b294d85f374efdc6e74dead58">RNous</option>
+    </select>
+</div>
+<div>
+    <label for="locations">Locations per operator:</label>
+    <input type="number" id="locations" placeholder="number of locations">
+</div>
+<div>
+    <label for="newProducts">Products new:</label>
+    <input type="number" id="newProducts" placeholder="number of new products">
+</div>
+<div>
+    <label for="productsToDelete">Products to delete:</label>
+    <input type="number" id="productsToDelete" placeholder="number of products to delete">
+</div>
+<div>
+    <label for="productsToUpdate">Products to update:</label>
+    <input type="number" id="productsToUpdate" placeholder="number of products to update">
+</div>
+<div>
+    <label for="authToken">Auth token:</label>
+    <input type="text" id="authToken" placeholder="auth token">
+</div>
+<div>
+    <button onclick="sendJSON()" id="submitButton">Submit</button>
+    <p>
+        Processing time (s): <span id="processingTime">00.000</span></div>
+<div id="response"></div>
 
-<form id="submitForm">
-    <div>
-        <label for="operators">How many Operators run for the test:</label>
-        <input type="number" id="operators" name="operators" required>
-    </div>
-    <div>
-        <label for="locations">How many locations per operator:</label>
-        <input type="number" id="locations" name="locations" required>
-    </div>
-    <div>
-        <label for="newProducts">How many products New:</label>
-        <input type="number" id="newProducts" name="newProducts" required>
-    </div>
-    <div>
-        <label for="productsToDelete">How many products Delete:</label>
-        <input type="number" id="productsToDelete" name="productsToDelete" required>
-    </div>
-    <div>
-        <label for="productsToUpdate">How many products Update:</label>
-        <input type="number" id="productsToUpdate" name="productsToUpdate" required>
-    </div>
+<script>
+    var startTime;
+    var timerInterval;
 
-    <div>
-        <label for="authToken">Auth token:</label>
-        <input type="text" id="authToken" name="authToken" required>
-    </div>
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(updateProcessingTime, 1);
+    }
 
-    <button type="submit">Submit</button>
-    <div id="resultWindow"></div>
-</form>
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
 
-<script src="script.js"></script>
+    function updateProcessingTime() {
+        var timeElapsed = Date.now() - startTime;
+        var seconds = Math.floor(timeElapsed / 1000);
+        var milliseconds = timeElapsed % 1000;
+        var timeString = seconds.toString().padStart(2, '0') + '.' + milliseconds.toString().padStart(3, '0');
+        document.getElementById("processingTime").innerText = timeString;
+    }
+
+    function sendJSON() {
+        var button = document.getElementById("submitButton");
+        button.classList.add("loading"); // Добавляем класс "loading" для анимации
+        button.disabled = true; // Отключаем кнопку после первого нажатия
+
+        startTimer(); // Запускаем секундомер при нажатии кнопки "Submit"
+
+        var operators = document.getElementById("operators").value;
+        var exactoperator = document.getElementById("exactoperator").value;
+        var locations = document.getElementById("locations").value;
+        var newProducts = document.getElementById("newProducts").value;
+        var productsToDelete = document.getElementById("productsToDelete").value;
+        var productsToUpdate = document.getElementById("productsToUpdate").value;
+        var authToken = document.getElementById("authToken").value;
+
+        var jsonData = {
+            "operators": parseInt(operators),
+            "exactoperator": exactoperator,
+            "locations": parseInt(locations),
+            "newProducts": parseInt(newProducts),
+            "productsToDelete": parseInt(productsToDelete),
+            "productsToUpdate": parseInt(productsToUpdate),
+            "authToken": authToken
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:8012/runtest", true);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+        xhr.onload = function() {
+            button.classList.remove("loading"); // Удаляем класс "loading" после получения ответа
+            button.disabled = false; // Включаем кнопку после получения ответа
+
+            if (xhr.status === 200) {
+                document.getElementById("response").innerText = xhr.responseText;
+            } else {
+                document.getElementById("response").innerText = "Error: " + xhr.statusText;
+            }
+
+            stopTimer(); // Останавливаем секундомер после получения ответа
+        };
+
+        xhr.send(JSON.stringify(jsonData));
+    }
+    document.getElementById("exactoperator").addEventListener("change", function() {
+        var exactoperator = document.getElementById("exactoperator").value;
+        var operatorsInput = document.getElementById("operators");
+        if (exactoperator !== "") {
+            operatorsInput.value = 1;
+            operatorsInput.disabled = true; // Отключаем поле для изменения пользователем
+        } else {
+            operatorsInput.disabled = false; // Включаем поле для изменения пользователем
+        }
+    });
+</script>
 </body>
 </html>
