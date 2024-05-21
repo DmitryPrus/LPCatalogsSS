@@ -16,21 +16,46 @@
             height: 100vh;
             text-align: center;
         }
+        .form-block-container {
+            display: flex;
+            flex-direction: row;
+        }
+        .form-block {
+            position: relative; /* For the close button */
+            display: flex;
+            flex-direction: column;
+            margin: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .close-button {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            cursor: pointer;
+            background: #00BFFF;
+            padding: 10px;
+            border: none;
+            color: white;
+            border-radius: 10%;
+            width: 1px;
+            height: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
         label {
             margin-bottom: 5px;
             text-align: right;
             font-weight: bold;
             display: inline-block;
-            width: 200px; /* Ширина для выравнивания */
-        }
-        input {
             width: 200px;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
         }
-        select {
-            width: 218px;
+        input, select {
+            width: 200px;
             padding: 8px;
             margin-bottom: 10px;
             border: 1px solid #ccc;
@@ -49,8 +74,8 @@
             background-color: #1E90FF;
         }
         button.loading {
-            pointer-events: none; /* Запрещаем события мыши, чтобы предотвратить повторные нажатия */
-            opacity: 0.7; /* Устанавливаем прозрачность для обозначения недоступности */
+            pointer-events: none;
+            opacity: 0.7;
         }
         button.loading:after {
             content: "";
@@ -76,42 +101,50 @@
     </style>
 </head>
 <body>
-<div>
-    <label for="operators">operators #:</label>
-    <input type="number" id="operators" placeholder="Quantity of operators">
-</div>
-<div>
-    <label for="exactoperator">Choosen operator:</label>
-    <select id="exactoperator">
-        <option value="">Random</option>
-        <option value="b14f997eb1e968be03ee9f5c69c78a0d">VDI_Latest_2.0</option>
-        <option value="00c9d90b294d85f374efdc6e74dead58">RNous</option>
-    </select>
-</div>
-<div>
-    <label for="locations">Locations per operator:</label>
-    <input type="number" id="locations" placeholder="number of locations">
-</div>
-<div>
-    <label for="newProducts">Products new:</label>
-    <input type="number" id="newProducts" placeholder="number of new products">
-</div>
-<div>
-    <label for="productsToDelete">Products to delete:</label>
-    <input type="number" id="productsToDelete" placeholder="number of products to delete">
-</div>
-<div>
-    <label for="productsToUpdate">Products to update:</label>
-    <input type="number" id="productsToUpdate" placeholder="number of products to update">
+<div class="form-block-container" id="form-container">
+    <div class="form-block">
+        <div>
+            <label for="operators">Operators #:</label>
+            <input type="number" id="operators" class="operators" placeholder="Quantity of operators">
+        </div>
+        <div>
+            <label for="exactoperator">Choosen operator:</label>
+            <select id="exactoperator" class="exactoperator">
+                <option value="">Random</option>
+                <option value="b14f997eb1e968be03ee9f5c69c78a0d">VDI_Latest_2.0</option>
+                <option value="00c9d90b294d85f374efdc6e74dead58">RNous</option>
+            </select>
+        </div>
+        <div>
+            <label for="locations">Locations per operator:</label>
+            <input type="number" id="locations" class="locations" placeholder="number of locations">
+        </div>
+        <div>
+            <label for="newProducts">Products new:</label>
+            <input type="number" id="newProducts" class="newProducts" placeholder="number of new products">
+        </div>
+        <div>
+            <label for="productsToDelete">Products to delete:</label>
+            <input type="number" id="productsToDelete" class="productsToDelete" placeholder="number of products to delete">
+        </div>
+        <div>
+            <label for="productsToUpdate">Products to update:</label>
+            <input type="number" id="productsToUpdate" class="productsToUpdate" placeholder="number of products to update">
+        </div>
+    </div>
 </div>
 <div>
     <label for="authToken">Auth token:</label>
     <input type="text" id="authToken" placeholder="auth token">
 </div>
 <div>
+    <button id="addButton">Add</button>
+    <p> </p>
+</div>
+<div>
     <button onclick="sendJSON()" id="submitButton">Submit</button>
-    <p>
-        Processing time (s): <span id="processingTime">00.000</span></div>
+    <p>Processing time (s): <span id="processingTime">00.000</span></p>
+</div>
 <div id="response"></div>
 
 <script>
@@ -135,38 +168,101 @@
         document.getElementById("processingTime").innerText = timeString;
     }
 
+    function handleExactOperatorChange(event) {
+        var exactoperator = event.target.value;
+        var operatorsInput = event.target.closest(".form-block").querySelector(".operators");
+        if (exactoperator !== "") {
+            operatorsInput.value = 1;
+            operatorsInput.disabled = true;
+        } else {
+            operatorsInput.disabled = false;
+        }
+    }
+
+    document.querySelectorAll(".exactoperator").forEach(function(selectElement) {
+        selectElement.addEventListener("change", handleExactOperatorChange);
+    });
+
+    document.getElementById("addButton").addEventListener("click", function() {
+        var formContainer = document.getElementById("form-container");
+        var newFormBlock = document.createElement("div");
+        newFormBlock.className = "form-block";
+
+        newFormBlock.innerHTML = `
+            <button class="close-button" onclick="removeBlock(this)">х</button>
+            <div>
+                <input type="number" class="operators" placeholder="Quantity of operators">
+            </div>
+            <div>
+                <select class="exactoperator">
+                    <option value="">Random</option>
+                    <option value="b14f997eb1e968be03ee9f5c69c78a0d">VDI_Latest_2.0</option>
+                    <option value="00c9d90b294d85f374efdc6e74dead58">RNous</option>
+                </select>
+            </div>
+            <div>
+                <input type="number" class="locations" placeholder="number of locations">
+            </div>
+            <div>
+                <input type="number" class="newProducts" placeholder="number of new products">
+            </div>
+            <div>
+                <input type="number" class="productsToDelete" placeholder="number of products to delete">
+            </div>
+            <div>
+                <input type="number" class="productsToUpdate" placeholder="number of products to update">
+            </div>
+        `;
+
+        newFormBlock.querySelector(".exactoperator").addEventListener("change", handleExactOperatorChange);
+
+        formContainer.appendChild(newFormBlock);
+    });
+
+    function removeBlock(button) {
+        var formBlock = button.parentElement;
+        formBlock.remove();
+    }
+
     function sendJSON() {
         var button = document.getElementById("submitButton");
-        button.classList.add("loading"); // Добавляем класс "loading" для анимации
-        button.disabled = true; // Отключаем кнопку после первого нажатия
+        button.classList.add("loading");
+        button.disabled = true;
 
-        startTimer(); // Запускаем секундомер при нажатии кнопки "Submit"
+        startTimer();
 
-        var operators = document.getElementById("operators").value;
-        var exactoperator = document.getElementById("exactoperator").value;
-        var locations = document.getElementById("locations").value;
-        var newProducts = document.getElementById("newProducts").value;
-        var productsToDelete = document.getElementById("productsToDelete").value;
-        var productsToUpdate = document.getElementById("productsToUpdate").value;
+        var formBlocks = document.querySelectorAll(".form-block");
+        var jsonData = [];
         var authToken = document.getElementById("authToken").value;
 
-        var jsonData = {
-            "operators": parseInt(operators),
-            "exactoperator": exactoperator,
-            "locations": parseInt(locations),
-            "newProducts": parseInt(newProducts),
-            "productsToDelete": parseInt(productsToDelete),
-            "productsToUpdate": parseInt(productsToUpdate),
-            "authToken": authToken
-        };
+        formBlocks.forEach(function(block) {
+            var operators = block.querySelector(".operators").value;
+            var exactoperator = block.querySelector(".exactoperator").value;
+            var locations = block.querySelector(".locations").value;
+            var newProducts = block.querySelector(".newProducts").value;
+            var productsToDelete = block.querySelector(".productsToDelete").value;
+            var productsToUpdate = block.querySelector(".productsToUpdate").value;
+
+            var data = {
+                "operators": parseInt(operators),
+                "exactoperator": exactoperator,
+                "locations": parseInt(locations),
+                "newProducts": parseInt(newProducts),
+                "productsToDelete": parseInt(productsToDelete),
+                "productsToUpdate": parseInt(productsToUpdate),
+                "authToken": authToken
+            };
+
+            jsonData.push(data);
+        });
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "http://localhost:8012/runtest", true);
         xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 
         xhr.onload = function() {
-            button.classList.remove("loading"); // Удаляем класс "loading" после получения ответа
-            button.disabled = false; // Включаем кнопку после получения ответа
+            button.classList.remove("loading");
+            button.disabled = false;
 
             if (xhr.status === 200) {
                 document.getElementById("response").innerText = xhr.responseText;
@@ -174,21 +270,11 @@
                 document.getElementById("response").innerText = "Error: " + xhr.statusText;
             }
 
-            stopTimer(); // Останавливаем секундомер после получения ответа
+            stopTimer();
         };
 
         xhr.send(JSON.stringify(jsonData));
     }
-    document.getElementById("exactoperator").addEventListener("change", function() {
-        var exactoperator = document.getElementById("exactoperator").value;
-        var operatorsInput = document.getElementById("operators");
-        if (exactoperator !== "") {
-            operatorsInput.value = 1;
-            operatorsInput.disabled = true; // Отключаем поле для изменения пользователем
-        } else {
-            operatorsInput.disabled = false; // Включаем поле для изменения пользователем
-        }
-    });
 </script>
 </body>
 </html>

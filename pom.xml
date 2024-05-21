@@ -28,6 +28,13 @@
 <!--			<scope>test</scope>-->
 <!--		</dependency>-->
 
+		<!--		does not support array list in mysql query-->
+<!--		<dependency>-->
+<!--			<groupId>mysql</groupId>-->
+<!--			<artifactId>mysql-connector-java</artifactId>-->
+<!--			<version>8.0.33</version>-->
+<!--		</dependency>-->
+
 		<!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3 -->
 		<dependency>
 			<groupId>com.amazonaws</groupId>
@@ -54,12 +61,6 @@
 			<version>2.16.1</version>
 		</dependency>
 
-<!--		does not support array list in mysql query-->
-<!--		<dependency>-->
-<!--			<groupId>mysql</groupId>-->
-<!--			<artifactId>mysql-connector-java</artifactId>-->
-<!--			<version>8.0.33</version>-->
-<!--		</dependency>-->
 
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
