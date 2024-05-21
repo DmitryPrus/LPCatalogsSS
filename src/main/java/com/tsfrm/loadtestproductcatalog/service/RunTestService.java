@@ -6,6 +6,8 @@ import com.tsfrm.loadtestproductcatalog.repository.JsonStorageRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 public class RunTestService {
@@ -28,15 +30,16 @@ public class RunTestService {
         log.info("Initialization completed. Extracted " + jsonStorageRepository.getOrgs().size() + " orgs for VDI2");
     }
 
-    public String runTestSpringController(TestFormData testFormData) {
+    public String runTestSpringController(List<TestFormData> testFormData) {
         jsonStorageRepository.readProcessing();
         return runTest(testFormData);
     }
 
-    public String runTest(TestFormData testFormData) {
+    public String runTest(List<TestFormData> testFormData) {
         try {
             log.info("Process started with data: " + testFormData);
-            var messages = vdiProductGenerateService.generateMessages(testFormData);
+            var messages = new ArrayList<VdiProductsTransaction>();
+            testFormData.forEach(tfd -> messages.addAll(vdiProductGenerateService.generateMessages(tfd)));
             log.info("Created " + messages.size() + " messages");
 
             var executorService = Executors.newFixedThreadPool(threadsQuantity);

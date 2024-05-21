@@ -4,6 +4,9 @@ import com.amazonaws.util.StringUtils;
 import com.tsfrm.loadtestproductcatalog.domain.TestFormData;
 import com.tsfrm.loadtestproductcatalog.service.RunTestService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LambdaMemoryMainTest {
 
     RunTestService runTestService;
@@ -18,17 +21,21 @@ public class LambdaMemoryMainTest {
         int productsToUpdate = 20000;
         var authToken = "token";
 
-        var testFromData = new TestFormData(operators, null, locations, newProducts, productsToDelete, productsToUpdate, authToken);
-        LambdaMemoryMainTest lt = new LambdaMemoryMainTest();
+        var testFromData = new ArrayList<TestFormData>();
+        testFromData.add(new TestFormData(operators, null, locations, newProducts, productsToDelete, productsToUpdate, authToken));
+        var lt = new LambdaMemoryMainTest();
         System.out.println(lt.handleRequest(destinationUrl, testFromData));
     }
 
 
-    public String handleRequest(String destinationUrl, TestFormData testFormData) {
-        var validationMessage = requestInvalidMessage(testFormData);
-        if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage;
-        runTestService = new RunTestService(destinationUrl, testFormData.getAuthToken(), 3);
-        return runTestService.runTest(testFormData);
+    public String handleRequest(String destinationUrl, List<TestFormData> testFormData) {
+        for (var f : testFormData){
+            var validationMessage = requestInvalidMessage(f);
+            if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage;
+        }
+
+        runTestService = new RunTestService(destinationUrl, testFormData.get(0).getAuthToken(), 3);
+        return  runTestService.runTestSpringController(testFormData);
     }
 
     private String requestInvalidMessage(TestFormData req) {

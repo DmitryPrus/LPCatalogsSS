@@ -5,11 +5,15 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.tsfrm.loadtestproductcatalog.domain.TestFormData;
 import com.tsfrm.loadtestproductcatalog.service.RunTestService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.List;
 
 public class LambdaController implements RequestHandler<APIGatewayProxyRequestEvent, String> {
 
@@ -52,12 +56,16 @@ public class LambdaController implements RequestHandler<APIGatewayProxyRequestEv
     public String handleRequest(APIGatewayProxyRequestEvent event, Context context) {
         try {
             var mapper = new ObjectMapper();
-            var testFormData = mapper.readValue(event.getBody(), TestFormData.class);
-            var validationMessage = requestInvalidMessage(testFormData);
-            if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage;
+            var testFormData = mapper.readValue(event.getBody(), new TypeReference<List<TestFormData>>() {
+            });
 
-            runTestService = new RunTestService(destinationUrl, testFormData.getAuthToken(), threadsQuantity);
-            return runTestService.runTest(testFormData);
+            for (var f : testFormData){
+                var validationMessage = requestInvalidMessage(f);
+                if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage;
+            }
+
+            runTestService = new RunTestService(destinationUrl, testFormData.get(0).getAuthToken(), threadsQuantity);
+            return  runTestService.runTestSpringController(testFormData);
         } catch (JsonProcessingException e) {
             return "Error. " + e.getMessage();
         }
