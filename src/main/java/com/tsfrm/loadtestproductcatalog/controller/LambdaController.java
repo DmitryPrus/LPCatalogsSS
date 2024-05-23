@@ -60,7 +60,7 @@ public class LambdaController implements RequestHandler<APIGatewayProxyRequestEv
 
             for (var f : testFormData){
                 var validationMessage = requestInvalidMessage(f);
-                if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage;
+                if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage + " for request: "+f;
             }
 
             runTestService = new RunTestService(destinationUrl, testFormData.get(0).getAuthToken(), threadsQuantity);

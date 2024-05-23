@@ -29,7 +29,7 @@ public class RunTestController {
     public String runTest(@RequestBody List<TestFormData> formData) {
         for (TestFormData f : formData){
             var validationMessage = requestInvalidMessage(f);
-            if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage;
+            if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage + " for request: "+f;
         }
 
         runTestService = new RunTestService(url, formData.get(0).getAuthToken(), threadsQuantity);
