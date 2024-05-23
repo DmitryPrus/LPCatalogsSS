@@ -38,103 +38,170 @@ public class VdiProductGenerateService {
     }
 
 
+    /**
+     * Method required only existing operatorId
+     */
     public List<VdiProductsTransaction> generateMessages(TestFormData request) {
-        var allOrgs = new ArrayList<>(jsonStorageRepository.getOrgs().stream().toList());
-        isValid(request, allOrgs);
-        Collections.shuffle(allOrgs);
-
-        //                                             orgId
-        var availableOrgsAndLocationsMap = new HashMap<String, ArrayList<LocationEntity>>();
-
-        // logic which allow choose only those orgs/locations which contain available requested quantity
-        // of products/locations for update/delete
-        if (forUpdate(request)) {
-            for (OrgEntity org : allOrgs) {
-                if (!StringUtils.isNullOrEmpty(request.getExactoperator()) && !request.getExactoperator().equalsIgnoreCase(org.getOrg())) continue;
-                if (org.getLocations().size() < request.getLocations()) continue;
-                for (LocationEntity loc : org.getLocations()) {
-                    if (loc.getProductIds().size() < (request.getProductsToUpdate() + request.getProductsToDelete()))
-                        continue;
-                    availableOrgsAndLocationsMap.putIfAbsent(org.getOrg(), new ArrayList<>());
-                    availableOrgsAndLocationsMap.get(org.getOrg()).add(loc);
-                }
-                if (!StringUtils.isNullOrEmpty(request.getExactoperator()) && request.getExactoperator().equalsIgnoreCase(org.getOrg())) break; // only one makes sense
-            }
-        } else { // add all existing orgs and entities as available in case when there are no data for update and delete
-            for (OrgEntity org : allOrgs) {
-                for (LocationEntity loc : org.getLocations()) {
-                    availableOrgsAndLocationsMap.putIfAbsent(org.getOrg(), new ArrayList<>());
-                    availableOrgsAndLocationsMap.get(org.getOrg()).add(loc);
-                }
-            }
-        }
-
-        availableOrgsAndLocationsMap.entrySet()
-                .removeIf(entry -> entry.getValue().size() < request.getLocations());
-
-        if (availableOrgsAndLocationsMap.size() < request.getOperators())
-            throw new ValidationException("There are no data for your requested parameters. Reduce number of operators/locations or products to update/delete for request"+ request);
-
+        var orgEntity = validateRequestAndRetrieveOrgEntity(request, jsonStorageRepository.getOrgs().stream().toList());
 
         var messages = new ArrayList<VdiProductsTransaction>();
-        int orgsHandled = 0;
+        var vpt = new VdiProductsTransaction();
+        var marketProductList = new ArrayList<VdiMarketProduct>();
+        var locations = new ArrayList<>(orgEntity.getLocations());
 
-        for (OrgEntity o : allOrgs) {
-            if (orgsHandled >= request.getOperators()) break;
-            if (!availableOrgsAndLocationsMap.containsKey(o.getOrg())) continue;
-            var locations = new ArrayList<>(o.getLocations());
-            var vpt = new VdiProductsTransaction();
-            var marketProductList = new ArrayList<VdiMarketProduct>();
-            Collections.shuffle(locations);
-            int locationsHandled = 0;
-            var availableLocationIdsSet = availableOrgsAndLocationsMap.get(o.getOrg()).stream().map(LocationEntity::getLocationId).collect(Collectors.toSet());
+        locations.removeIf(
+                location -> forUpdate(request) &&
+                        ((request.getProductsToUpdate() + request.getProductsToDelete()) < location.getProductIds().size())
+        );
+        Collections.shuffle(locations);
 
-            for (LocationEntity location : locations) {
-                if (locationsHandled >= request.getLocations()) break;
-                if (!availableLocationIdsSet.contains(location.getLocationId())) continue;
-                var productIds = new ArrayList<>(location.getProductIds());
-                Collections.shuffle(productIds);
-                var productsToRemove = removeProducts(request.getProductsToDelete(), productIds);
-                var productsToCreate = generateProduct(request.getNewProducts());
-                var productsToUpdate = updateProducts(request.getProductsToUpdate(), productIds);
-                productsToUpdate.addAll(productsToCreate);
-                marketProductList.add(new VdiMarketProduct(location.getLocationUserKey(), generateCatalogType(), productsToRemove, productsToUpdate));
+        int locationsHandled = 0;
 
-                //delete from productLocationMap (needed for transactions)
-                jsonStorageRepository.getOrgLocProductMap()
-                        .get(o.getOrg())
-                        .get(location.getLocationId())
-                        .removeIf(productEntity ->
-                                productsToRemove.stream()
-                                        .anyMatch(deleteProd -> deleteProd.getProductId().equals(productEntity.getId()))
-                        );
+        for (LocationEntity location : locations) {
+            if (locationsHandled >= request.getLocations()) break;
+            var productIds = new ArrayList<>(location.getProductIds());
+            Collections.shuffle(productIds);
+            var productsToRemove = removeProducts(request.getProductsToDelete(), productIds);
+            var productsToCreate = generateProduct(request.getNewProducts());
+            var productsToUpdate = updateProducts(request.getProductsToUpdate(), productIds);
+            productsToUpdate.addAll(productsToCreate);
+            marketProductList.add(new VdiMarketProduct(location.getLocationUserKey(), generateCatalogType(), productsToRemove, productsToUpdate));
 
-                // update products in productLocationMap
-                var allProductIds = jsonStorageRepository.getOrgLocProductMap()
-                        .get(o.getOrg())
-                        .get(location.getLocationId())
-                        .stream()
-                        .map(VdiProductEntity::getId)
-                        .collect(Collectors.toSet());
+            //delete from productLocationMap (needed for transactions)
+            jsonStorageRepository.getOrgLocProductMap()
+                    .get(orgEntity.getOrg())
+                    .get(location.getLocationId())
+                    .removeIf(productEntity ->
+                            productsToRemove.stream()
+                                    .anyMatch(deleteProd -> deleteProd.getProductId().equals(productEntity.getId()))
+                    );
 
-                productsToUpdate.stream()
-                        .filter(vp -> !allProductIds.contains(vp.getProductId()))
-                        .map(vp -> converter.vdiProductToEntity(vp, o.getOrg()))
-                        .forEach(jsonStorageRepository.getOrgLocProductMap()
-                                .get(o.getOrg())
-                                .get(location.getLocationId())::add);
+            // update products in productLocationMap
+            var allProductIds = jsonStorageRepository.getOrgLocProductMap()
+                    .get(orgEntity.getOrg())
+                    .get(location.getLocationId())
+                    .stream()
+                    .map(VdiProductEntity::getId)
+                    .collect(Collectors.toSet());
 
-                locationsHandled++;
-            }
-            vpt.setVdiHeader(generateHeader(o.getUserKey()));
-            vpt.setProducts(marketProductList);
-            messages.add(vpt);
-            orgsHandled++;
+            productsToUpdate.stream()
+                    .filter(vp -> !allProductIds.contains(vp.getProductId()))
+                    .map(vp -> converter.vdiProductToEntity(vp, orgEntity.getOrg()))
+                    .forEach(jsonStorageRepository.getOrgLocProductMap()
+                            .get(orgEntity.getOrg())
+                            .get(location.getLocationId())::add);
+
+            locationsHandled++;
         }
+        vpt.setVdiHeader(generateHeader(orgEntity.getUserKey()));
+        vpt.setProducts(marketProductList);
+        messages.add(vpt);
+
         return messages;
     }
 
-
+    /**
+     * Method randomly choose organizations which contain locations and needed number of products.
+     * In case there are no operators/locations which are OK for requested params Error message will be thrown
+     * Commented , cause team decided usage exactly chosen operator
+     *
+     * @return
+     */
+//    public List<VdiProductsTransaction> generateMessages(TestFormData request) {
+//        var allOrgs = new ArrayList<>(jsonStorageRepository.getOrgs().stream().toList());
+//        isValid(request, allOrgs);
+//        Collections.shuffle(allOrgs);
+//
+//        //                                             orgId
+//        var availableOrgsAndLocationsMap = new HashMap<String, ArrayList<LocationEntity>>();
+//
+//        // logic which allow choose only those orgs/locations which contain available requested quantity
+//        // of products/locations for update/delete
+//        if (forUpdate(request)) {
+//            for (OrgEntity org : allOrgs) {
+//                if (!StringUtils.isNullOrEmpty(request.getOperatorId()) && !request.getOperatorId().equalsIgnoreCase(org.getOrg())) continue;
+//                if (org.getLocations().size() < request.getLocations()) continue;
+//                for (LocationEntity loc : org.getLocations()) {
+//                    if (loc.getProductIds().size() < (request.getProductsToUpdate() + request.getProductsToDelete()))
+//                        continue;
+//                    availableOrgsAndLocationsMap.putIfAbsent(org.getOrg(), new ArrayList<>());
+//                    availableOrgsAndLocationsMap.get(org.getOrg()).add(loc);
+//                }
+//                if (!StringUtils.isNullOrEmpty(request.getOperatorId()) && request.getOperatorId().equalsIgnoreCase(org.getOrg())) break; // only one makes sense
+//            }
+//        } else { // add all existing orgs and entities as available in case when there are no data for update and delete
+//            for (OrgEntity org : allOrgs) {
+//                for (LocationEntity loc : org.getLocations()) {
+//                    availableOrgsAndLocationsMap.putIfAbsent(org.getOrg(), new ArrayList<>());
+//                    availableOrgsAndLocationsMap.get(org.getOrg()).add(loc);
+//                }
+//            }
+//        }
+//
+//        availableOrgsAndLocationsMap.entrySet()
+//                .removeIf(entry -> entry.getValue().size() < request.getLocations());
+//
+//        if (availableOrgsAndLocationsMap.size() < request.getOperators())
+//            throw new ValidationException("There are no data for your requested parameters. Reduce number of operators/locations or products to update/delete for request"+ request);
+//
+//
+//        var messages = new ArrayList<VdiProductsTransaction>();
+//        int orgsHandled = 0;
+//
+//        for (OrgEntity o : allOrgs) {
+//            if (orgsHandled >= request.getOperators()) break;
+//            if (!availableOrgsAndLocationsMap.containsKey(o.getOrg())) continue;
+//            var locations = new ArrayList<>(o.getLocations());
+//            var vpt = new VdiProductsTransaction();
+//            var marketProductList = new ArrayList<VdiMarketProduct>();
+//            Collections.shuffle(locations);
+//            int locationsHandled = 0;
+//            var availableLocationIdsSet = availableOrgsAndLocationsMap.get(o.getOrg()).stream().map(LocationEntity::getLocationId).collect(Collectors.toSet());
+//
+//            for (LocationEntity location : locations) {
+//                if (locationsHandled >= request.getLocations()) break;
+//                if (!availableLocationIdsSet.contains(location.getLocationId())) continue;
+//                var productIds = new ArrayList<>(location.getProductIds());
+//                Collections.shuffle(productIds);
+//                var productsToRemove = removeProducts(request.getProductsToDelete(), productIds);
+//                var productsToCreate = generateProduct(request.getNewProducts());
+//                var productsToUpdate = updateProducts(request.getProductsToUpdate(), productIds);
+//                productsToUpdate.addAll(productsToCreate);
+//                marketProductList.add(new VdiMarketProduct(location.getLocationUserKey(), generateCatalogType(), productsToRemove, productsToUpdate));
+//
+//                //delete from productLocationMap (needed for transactions)
+//                jsonStorageRepository.getOrgLocProductMap()
+//                        .get(o.getOrg())
+//                        .get(location.getLocationId())
+//                        .removeIf(productEntity ->
+//                                productsToRemove.stream()
+//                                        .anyMatch(deleteProd -> deleteProd.getProductId().equals(productEntity.getId()))
+//                        );
+//
+//                // update products in productLocationMap
+//                var allProductIds = jsonStorageRepository.getOrgLocProductMap()
+//                        .get(o.getOrg())
+//                        .get(location.getLocationId())
+//                        .stream()
+//                        .map(VdiProductEntity::getId)
+//                        .collect(Collectors.toSet());
+//
+//                productsToUpdate.stream()
+//                        .filter(vp -> !allProductIds.contains(vp.getProductId()))
+//                        .map(vp -> converter.vdiProductToEntity(vp, o.getOrg()))
+//                        .forEach(jsonStorageRepository.getOrgLocProductMap()
+//                                .get(o.getOrg())
+//                                .get(location.getLocationId())::add);
+//
+//                locationsHandled++;
+//            }
+//            vpt.setVdiHeader(generateHeader(o.getUserKey()));
+//            vpt.setProducts(marketProductList);
+//            messages.add(vpt);
+//            orgsHandled++;
+//        }
+//        return messages;
+//    }
     public VdiHeader generateHeader(@NonNull String userKey) {
         var vdiVersion = Const.HEADER_VDI_VERSION;
         var vdiType = Const.HEADER_VDI_TYPE;
@@ -260,7 +327,7 @@ public class VdiProductGenerateService {
 
     private VdiBarCode generateBarCode() {
         var barcode = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16);
-        return new VdiBarCode("Bar"+barcode);
+        return new VdiBarCode("Bar" + barcode);
     }
 
     private VdiProductAttribute generateAttributes() {
@@ -302,16 +369,11 @@ public class VdiProductGenerateService {
         return BigDecimal.valueOf(randomValue).setScale(2, RoundingMode.HALF_UP);
     }
 
-    private void isValid(TestFormData request, List<OrgEntity> orgEntities) {
-        if (request.getOperators() <= 0) throw new ValidationException("Operators must contain value >0");
-        if (request.getLocations() <= 0) throw new ValidationException("Locations must contain value >0");
-        if (request.getNewProducts() > 5000) throw new ValidationException("Too many products to create");
+    private OrgEntity validateRequestAndRetrieveOrgEntity(TestFormData request, List<OrgEntity> orgEntities) {
+        if (request.getNewProducts() > 5000)
+            throw new ValidationException("Too many products to create for request: " + request);
         if (request.getProductsToUpdate() <= 0 && request.getProductsToDelete() <= 0 && request.getNewProducts() <= 0)
-            throw new ValidationException("There are no data to modify");
-
-        if (request.getOperators() > orgEntities.size())
-            throw new ValidationException(String.format("Too many operators. Available %s, requested %s", orgEntities.size(), request.getOperators()));
-
+            throw new ValidationException("There are no data to modify. For request: " + request);
 
         if (request.getNewProducts() > 0) {
             int totalProducts = orgEntities.stream()
@@ -322,7 +384,49 @@ public class VdiProductGenerateService {
             if (totalProducts > 300000)
                 throw new ValidationException("New products creation restriction. Too many existing products [" + totalProducts + "]. Use 'newProducts' as 0 , and try again");
         }
+
+        var chosenOrg = orgEntities.stream()
+                .filter(o -> o.getOrg().equalsIgnoreCase(request.getOperatorId()))
+                .findFirst()
+                .orElseThrow(() -> new ValidationException("Operator does not exist: " + request.getOperatorName() + " with id " + request.getOperatorId()));
+
+        if (chosenOrg.getLocations().size() < request.getLocations())
+            throw new ValidationException("Too many locations required. Available: " + chosenOrg.getLocations().size() + ", required: " + request.getLocations() + ". For request: " + request);
+        if (forUpdate(request)) {
+            int quantityForUpdate = request.getProductsToUpdate() + request.getProductsToUpdate();
+            int locationsCounter = 0;
+            for (var l : chosenOrg.getLocations()) {
+                if (l.getProductIds().size() > quantityForUpdate) locationsCounter++;
+            }
+            if (locationsCounter < request.getLocations()) {
+                var message = String.format("Too many products required for update. There are %n locations contains more than %n products. But required %n locations to be updated. Reduce quantity of locations or quantity of products for update/delete for request: ", locationsCounter, quantityForUpdate, request.getLocations());
+                throw new ValidationException(message + request);
+            }
+        }
+        return chosenOrg;
     }
+//    METHOD actual for randomly chosen operators
+//    private void isValid(TestFormData request, List<OrgEntity> orgEntities) {
+//        if (request.getOperators() <= 0) throw new ValidationException("Operators must contain value >0");
+//        if (request.getLocations() <= 0) throw new ValidationException("Locations must contain value >0");
+//        if (request.getNewProducts() > 5000) throw new ValidationException("Too many products to create");
+//        if (request.getProductsToUpdate() <= 0 && request.getProductsToDelete() <= 0 && request.getNewProducts() <= 0)
+//            throw new ValidationException("There are no data to modify");
+//
+//        if (request.getOperators() > orgEntities.size())
+//            throw new ValidationException(String.format("Too many operators. Available %s, requested %s", orgEntities.size(), request.getOperators()));
+//
+//
+//        if (request.getNewProducts() > 0) {
+//            int totalProducts = orgEntities.stream()
+//                    .flatMap(org -> org.getLocations().stream())
+//                    .mapToInt(loc -> loc.getProductIds().size())
+//                    .sum();
+//            log.info("Products in storage: " + totalProducts);
+//            if (totalProducts > 300000)
+//                throw new ValidationException("New products creation restriction. Too many existing products [" + totalProducts + "]. Use 'newProducts' as 0 , and try again");
+//        }
+//    }
 
     private boolean forUpdate(TestFormData testFormData) {
         return testFormData.getProductsToUpdate() + testFormData.getProductsToDelete() > 0;
