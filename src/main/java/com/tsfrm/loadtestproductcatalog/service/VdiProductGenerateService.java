@@ -51,7 +51,7 @@ public class VdiProductGenerateService {
 
         locations.removeIf(
                 location -> forUpdate(request) &&
-                        ((request.getProductsToUpdate() + request.getProductsToDelete()) < location.getProductIds().size())
+                        ((request.getProductsToUpdate() + request.getProductsToDelete()) > location.getProductIds().size())
         );
         Collections.shuffle(locations);
 
@@ -391,15 +391,15 @@ public class VdiProductGenerateService {
                 .orElseThrow(() -> new ValidationException("Operator does not exist: " + request.getOperatorName() + " with id " + request.getOperatorId()));
 
         if (chosenOrg.getLocations().size() < request.getLocations())
-            throw new ValidationException("Too many locations required. Available: " + chosenOrg.getLocations().size() + ", required: " + request.getLocations() + ". For request: " + request);
+            throw new ValidationException("Too many locations requested. Available: " + chosenOrg.getLocations().size() + ", required: " + request.getLocations() + ". For request: " + request);
         if (forUpdate(request)) {
-            int quantityForUpdate = request.getProductsToUpdate() + request.getProductsToUpdate();
+            int quantityForUpdate = request.getProductsToUpdate() + request.getProductsToDelete();
             int locationsCounter = 0;
             for (var l : chosenOrg.getLocations()) {
                 if (l.getProductIds().size() > quantityForUpdate) locationsCounter++;
             }
             if (locationsCounter < request.getLocations()) {
-                var message = String.format("Too many products required for update. There are %n locations contains more than %n products. But required %n locations to be updated. Reduce quantity of locations or quantity of products for update/delete for request: ", locationsCounter, quantityForUpdate, request.getLocations());
+                var message = String.format("Too many products requested for update. %n There are %d locations contain more than %d products But required %d locations to be updated. %n Reduce quantity of locations or quantity of products for update/delete for request: %n", locationsCounter, quantityForUpdate, request.getLocations());
                 throw new ValidationException(message + request);
             }
         }

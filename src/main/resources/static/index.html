@@ -75,7 +75,6 @@
 <table id="data-table">
     <thead>
     <tr>
-        <th>Operators #</th>
         <th>Choosen operator</th>
         <th>Locations per operator</th>
         <th>Products new</th>
@@ -86,12 +85,10 @@
     </thead>
     <tbody id="table-body">
     <tr>
-        <td><input type="number" class="operators" placeholder="Quantity of operators"></td>
         <td>
-            <select class="exactoperator">
-                <option value="">Random</option>
-                <option value="b14f997eb1e968be03ee9f5c69c78a0d">VDI_Latest_2.0</option>
-                <option value="00c9d90b294d85f374efdc6e74dead58">RNous</option>
+            <select class="operatorId">
+                <option value="b14f997eb1e968be03ee9f5c69c78a0d" data-name="VDI_Latest_2.0">VDI_Latest_2.0</option>
+                <option value="00c9d90b294d85f374efdc6e74dead58" data-name="RNous">RNous</option>
             </select>
         </td>
         <td><input type="number" class="locations" placeholder="number of locations"></td>
@@ -139,19 +136,23 @@
         document.getElementById("processingTime").innerText = timeString;
     }
 
-    function handleExactOperatorChange(event) {
-        var exactoperator = event.target.value;
-        var operatorsInput = event.target.closest("tr").querySelector(".operators");
-        if (exactoperator !== "") {
-            operatorsInput.value = 1;
-            operatorsInput.disabled = true;
-        } else {
-            operatorsInput.disabled = false;
+    function handleOperatorIdChange(event) {
+        var operatorId = event.target.value;
+        var operatorName = event.target.selectedOptions[0].getAttribute('data-name');
+        var hiddenInput = event.target.closest("tr").querySelector(".operatorName");
+
+        if (!hiddenInput) {
+            hiddenInput = document.createElement("input");
+            hiddenInput.type = "hidden";
+            hiddenInput.className = "operatorName";
+            event.target.closest("tr").appendChild(hiddenInput);
         }
+
+        hiddenInput.value = operatorName || '';
     }
 
-    document.querySelectorAll(".exactoperator").forEach(function(selectElement) {
-        selectElement.addEventListener("change", handleExactOperatorChange);
+    document.querySelectorAll(".operatorId").forEach(function(selectElement) {
+        selectElement.addEventListener("change", handleOperatorIdChange);
     });
 
     document.getElementById("addButton").addEventListener("click", function() {
@@ -159,12 +160,10 @@
         var newRow = document.createElement("tr");
 
         newRow.innerHTML = `
-                <td><input type="number" class="operators" placeholder="Quantity of operators"></td>
                 <td>
-                    <select class="exactoperator">
-                        <option value="">Random</option>
-                        <option value="b14f997eb1e968be03ee9f5c69c78a0d">VDI_Latest_2.0</option>
-                        <option value="00c9d90b294d85f374efdc6e74dead58">RNous</option>
+                    <select class="operatorId">
+                        <option value="b14f997eb1e968be03ee9f5c69c78a0d" data-name="VDI_Latest_2.0">VDI_Latest_2.0</option>
+                        <option value="00c9d90b294d85f374efdc6e74dead58" data-name="RNous">RNous</option>
                     </select>
                 </td>
                 <td><input type="number" class="locations" placeholder="number of locations"></td>
@@ -174,7 +173,7 @@
                 <td><button class="close-button" onclick="removeRow(this)">х</button></td>
             `;
 
-        newRow.querySelector(".exactoperator").addEventListener("change", handleExactOperatorChange);
+        newRow.querySelector(".operatorId").addEventListener("change", handleOperatorIdChange);
 
         tableBody.appendChild(newRow);
     });
@@ -196,16 +195,16 @@
         var authToken = document.getElementById("authToken").value;
 
         tableRows.forEach(function(row) {
-            var operators = row.querySelector(".operators").value;
-            var exactoperator = row.querySelector(".exactoperator").value;
+            var operatorId = row.querySelector(".operatorId").value;
+            var operatorName = row.querySelector(".operatorName") ? row.querySelector(".operatorName").value : '';
             var locations = row.querySelector(".locations").value;
             var newProducts = row.querySelector(".newProducts").value;
             var productsToDelete = row.querySelector(".productsToDelete").value;
             var productsToUpdate = row.querySelector(".productsToUpdate").value;
 
             var data = {
-                "operators": parseInt(operators),
-                "exactoperator": exactoperator,
+                "operatorId": operatorId,
+                "operatorName": operatorName,
                 "locations": parseInt(locations),
                 "newProducts": parseInt(newProducts),
                 "productsToDelete": parseInt(productsToDelete),
