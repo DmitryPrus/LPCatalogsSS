@@ -207,7 +207,7 @@ public class JsonFilesGenerator {
                 query += ",";
             }
         }
-        query += ")";
+        query += ") AND product.SCANCODE is not null AND product.userkey is not null";
 
         try (
                 Connection connection = DriverManager.getConnection(config.dbUrl, config.dbUser, config.dbPassword);

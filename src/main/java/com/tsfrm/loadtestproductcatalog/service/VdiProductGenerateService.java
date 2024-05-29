@@ -256,13 +256,15 @@ public class VdiProductGenerateService {
             }
 
             var shortName = (pe.getShortname() != null) ? pe.getShortname() : pe.getName();
+            var categoryCode = (pe.getCategory1() != null) ? pe.getCategory1() : "no-code";
+            var categoryName = (pe.getCategory1() != null) ? pe.getCategory1() : "no-name";
             var productResult = VdiProduct.builder()
                     .productId(pe.getUserkey()) //USERKEY IS productId for JSON
                     .productCode(pe.getScancode())
                     .productName(pe.getName())
                     .shortProductName(shortName)
-                    .categoryCode(pe.getCategory1())
-                    .categoryName(pe.getCategory1())
+                    .categoryCode(categoryCode)
+                    .categoryName(categoryName)
                     .cost(generateNumberValue(0.01, 10))
                     .price(generateNumberValue(0.01, 10))
                     .lastChangeDtm(OffsetDateTime.now())
