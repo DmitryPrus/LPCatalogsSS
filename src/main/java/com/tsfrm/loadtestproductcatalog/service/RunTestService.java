@@ -54,7 +54,7 @@ public class RunTestService {
             log.info("All messages have been processed successfully.");
             jsonStorageRepository.writeProcessing(); // update of json files
             jsonStorageRepository.readProcessing();
-            return "All messages have been processed successfully. Check status of http response in logs";
+            return "All messages have been processed successfully. Check logs with requestID: load-product-catalogs-test-";
         } catch (Exception e) {
             return e.getMessage();
         }
