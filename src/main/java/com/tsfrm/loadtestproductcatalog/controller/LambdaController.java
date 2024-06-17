@@ -47,7 +47,7 @@ public class LambdaController implements RequestHandler<APIGatewayProxyRequestEv
         );
 
         log.info("Run with data: \n" + message);
-        destinationUrl = System.getenv("DESTINATION_URL") != null ? System.getenv("DESTINATION_URL") : "http://localhost:8082/mmsproducts/1/localtest";
+        destinationUrl = System.getenv("DESTINATION_URL") != null ? System.getenv("DESTINATION_URL") : "http://localhost:8082/mmsproducts/1";
         threadsQuantity = System.getenv("OUTBOUND_THREADS_QUANTITY") != null ? Integer.parseInt(System.getenv("OUTBOUND_THREADS_QUANTITY")) : 3;
     }
 
@@ -72,8 +72,6 @@ public class LambdaController implements RequestHandler<APIGatewayProxyRequestEv
 
     private String requestInvalidMessage(TestFormData req) {
         if (req == null) return "No request provided";
-        //if (req.getOperators() <= 0) return "'Operators' must be > 0. Provided: " + req.getOperators();
-        //if (!StringUtils.isNullOrEmpty(req.getOperatorId()) && req.getOperators()!=1) return "'Operators' quantity required = 1 for provided chosen operator "+ req.getOperatorId();
         if (StringUtils.isNullOrEmpty(req.getOperatorId())) return "No operator provided";
         if (req.getLocations() <= 0) return "'Locations' must be > 0. Provided: " + req.getLocations();
         if (req.getNewProducts() < 0 || req.getNewProducts() > 5000)

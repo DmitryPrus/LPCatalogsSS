@@ -89,27 +89,27 @@ public class JsonStorageRepository {
         }
 
         //s3 bucket
-        writeJsonFileToS3(productJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
-        writeJsonFileToS3(locationJsonList, BUCKET_NAME, BUCKET_LOCATIONS_KEY);
-        writeJsonFileToS3(orgJsonList, BUCKET_NAME, BUCKET_ORGS_KEY);
+//        writeJsonFileToS3(productJsonList, BUCKET_NAME, BUCKET_PRODUCTS_KEY);
+//        writeJsonFileToS3(locationJsonList, BUCKET_NAME, BUCKET_LOCATIONS_KEY);
+//        writeJsonFileToS3(orgJsonList, BUCKET_NAME, BUCKET_ORGS_KEY);
 
         // local storage
-//        writeJsonFile(productJsonList, PRODUCTS_STORAGE);
-//        writeJsonFile(locationJsonList, LOCATIONS_STORAGE);
-//        writeJsonFile(orgJsonList, ORGS_STORAGE);
+        writeJsonFile(productJsonList, PRODUCTS_STORAGE);
+        writeJsonFile(locationJsonList, LOCATIONS_STORAGE);
+        writeJsonFile(orgJsonList, ORGS_STORAGE);
     }
 
 
     public void readProcessing() {
         //local storage
-//        var productsJson = readJsonFromLocalStorage(PRODUCTS_STORAGE, new TypeReference<List<VdiProductJsonEntity>>() {});
-//        var locationsJson = readJsonFromLocalStorage(LOCATIONS_STORAGE, new TypeReference<List<LocationJsonEntity>>() {});
-//        var orgsJson = readJsonFromLocalStorage(ORGS_STORAGE, new TypeReference<List<OrgJsonEntity>>() {});
+        var productsJson = readJsonFromLocalStorage(PRODUCTS_STORAGE, new TypeReference<List<VdiProductJsonEntity>>() {});
+        var locationsJson = readJsonFromLocalStorage(LOCATIONS_STORAGE, new TypeReference<List<LocationJsonEntity>>() {});
+        var orgsJson = readJsonFromLocalStorage(ORGS_STORAGE, new TypeReference<List<OrgJsonEntity>>() {});
 
         //s3 storage
-        var productsJson = readJsonFromS3(BUCKET_NAME, BUCKET_PRODUCTS_KEY, new TypeReference<List<VdiProductJsonEntity>>() {});
-        var locationsJson = readJsonFromS3(BUCKET_NAME, BUCKET_LOCATIONS_KEY, new TypeReference<List<LocationJsonEntity>>() {});
-        var orgsJson = readJsonFromS3(BUCKET_NAME, BUCKET_ORGS_KEY, new TypeReference<List<OrgJsonEntity>>() {});
+//        var productsJson = readJsonFromS3(BUCKET_NAME, BUCKET_PRODUCTS_KEY, new TypeReference<List<VdiProductJsonEntity>>() {});
+//        var locationsJson = readJsonFromS3(BUCKET_NAME, BUCKET_LOCATIONS_KEY, new TypeReference<List<LocationJsonEntity>>() {});
+//        var orgsJson = readJsonFromS3(BUCKET_NAME, BUCKET_ORGS_KEY, new TypeReference<List<OrgJsonEntity>>() {});
 
         var generalMap = new HashMap<String, Map<String, HashSet<VdiProductEntity>>>();
 
@@ -149,7 +149,7 @@ public class JsonStorageRepository {
 
             for (Map.Entry<String, HashSet<VdiProductEntity>> locEntry : locMap.entrySet()) {
                 var locId = locEntry.getKey();
-                var productIdList = locEntry.getValue().stream().map(VdiProductEntity::getId).toList();
+                var productIdList = locEntry.getValue().stream().map(VdiProductEntity::getUserkey).toList();
                 var locUserKey = locationsJson.stream()
                         .filter(loc -> loc.getLocationId().equals(locId))
                         .map(LocationJsonEntity::getLocationUserKey)

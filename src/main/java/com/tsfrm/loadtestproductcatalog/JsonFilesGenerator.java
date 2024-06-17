@@ -22,7 +22,7 @@ public class JsonFilesGenerator {
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
 //        logic to write JSON file from database
-        JsonFilesGenerator jfg = new JsonFilesGenerator();
+        var jfg = new JsonFilesGenerator();
         jfg.readDatabaseDataAndStoreToJson();
 //        String url = System.getenv("DESTINATION_URL") != null ? System.getenv("DESTINATION_URL") : "http://localhost:8082/mmsproducts/1/localtest";
 //        Integer threadsQuantity = System.getenv("OUTBOUND_THREADS_QUANTITY") != null ? Integer.parseInt(System.getenv("OUTBOUND_THREADS_QUANTITY")) : 2;
@@ -80,7 +80,7 @@ public class JsonFilesGenerator {
                           AND vp.NAME = '%s'
                         limit 200;
                         """,
-                "April_01"
+                "CatalogProvider"
         );
 
         try (
@@ -112,7 +112,7 @@ public class JsonFilesGenerator {
                                           WHERE c.type = 'VDIENABLE'
                                             AND c.value = 'Y'
                                             AND c.cfgtype = 'LOC'
-                                            AND vp.name = 'April_01'
+                                            AND vp.name = 'CatalogProvider'
                                             AND l.org = ?;
                 """;
 

@@ -17,7 +17,7 @@
 //    int threadsQuantity;
 //
 //    {
-//        url = System.getenv("DESTINATION_URL") != null ? System.getenv("DESTINATION_URL") : "http://localhost:8082/mmsproducts/1/localtest";
+//        url = System.getenv("DESTINATION_URL") != null ? System.getenv("DESTINATION_URL") : "http://localhost:8082/mmsproducts/1";
 //        //String url = http://localhost:8082/mmsproducts/1/localtest;
 //        //String url = https://gateway.test4.365rm.us/vdi/VDIdataExchange/mmsproducts/1/e10c2ae5-1f8a-4224-add1-8e78d4a228dce;
 //        threadsQuantity = System.getenv("OUTBOUND_THREADS_QUANTITY") != null ? Integer.parseInt(System.getenv("OUTBOUND_THREADS_QUANTITY")) : 3;

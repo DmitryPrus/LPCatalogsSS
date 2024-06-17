@@ -74,11 +74,12 @@ public class JsonEntityConverter {
     public VdiProductEntity vdiProductToEntity(VdiProduct prod, String orgId) {
         VdiProductEntity vpe = new VdiProductEntity();
         vpe.setId(prod.getProductId());
-        vpe.setScancode(prod.getProductCode());
+        vpe.setScancode(prod.getBarCodes().get(0).getCode());
         vpe.setOrg(orgId);
         vpe.setName(prod.getProductName());
         vpe.setShortname(prod.getShortProductName());
         vpe.setCategory1(prod.getCategoryCode());
+        vpe.setUserkey(prod.getProductId());
         vpe.setCost(prod.getCost());
         vpe.setPrice(prod.getPrice());
         vpe.setLastupdated(prod.getLastChangeDtm().toLocalDateTime());

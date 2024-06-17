@@ -62,6 +62,7 @@ public class VdiProductGenerateService {
             var productIds = new ArrayList<>(location.getProductIds());
             Collections.shuffle(productIds);
             var productsToRemove = removeProducts(request.getProductsToDelete(), productIds);
+            productIds.removeAll(productsToRemove.stream().map(VdiProductsRemove::getProductId).toList());
             var productsToCreate = generateProduct(request.getNewProducts());
             var productsToUpdate = updateProducts(request.getProductsToUpdate(), productIds);
             productsToUpdate.addAll(productsToCreate);
@@ -73,7 +74,7 @@ public class VdiProductGenerateService {
                     .get(location.getLocationId())
                     .removeIf(productEntity ->
                             productsToRemove.stream()
-                                    .anyMatch(deleteProd -> deleteProd.getProductId().equals(productEntity.getId()))
+                                    .anyMatch(deleteProd -> deleteProd.getProductId().equals(productEntity.getUserkey()))
                     );
 
             // update products in productLocationMap
@@ -81,7 +82,7 @@ public class VdiProductGenerateService {
                     .get(orgEntity.getOrg())
                     .get(location.getLocationId())
                     .stream()
-                    .map(VdiProductEntity::getId)
+                    .map(VdiProductEntity::getUserkey)
                     .collect(Collectors.toSet());
 
             productsToUpdate.stream()
@@ -292,7 +293,7 @@ public class VdiProductGenerateService {
         var resultList = new ArrayList<VdiProduct>(numberToCreate);
         for (int i = 0; i < numberToCreate; i++) {
             var rawProduct = UtilProductGeneration.PRODUCT_RAW_LIST.get(random.nextInt(UtilProductGeneration.PRODUCT_RAW_LIST.size()));
-            var productId = UUID.randomUUID().toString().replaceAll("-", "");
+            var productId = "LP_Catalog_ID-"+UUID.randomUUID().toString().replaceAll("-", "").substring(0,20);
 
             var cost = generateNumberValue(1, 10);
             var resultProudct = VdiProduct.builder()
@@ -329,7 +330,7 @@ public class VdiProductGenerateService {
 
     private VdiBarCode generateBarCode() {
         var barcode = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16);
-        return new VdiBarCode("Bar" + barcode);
+        return new VdiBarCode("LP_Catalog_Bar" + barcode);
     }
 
     private VdiProductAttribute generateAttributes() {
@@ -398,7 +399,7 @@ public class VdiProductGenerateService {
             int quantityForUpdate = request.getProductsToUpdate() + request.getProductsToDelete();
             int locationsCounter = 0;
             for (var l : chosenOrg.getLocations()) {
-                if (l.getProductIds().size() > quantityForUpdate) locationsCounter++;
+                if (l.getProductIds().size() >= quantityForUpdate) locationsCounter++;
             }
             if (locationsCounter < request.getLocations()) {
                 var message = String.format("Too many products requested for update. %n There are %d locations contain more than %d products But required %d locations to be updated. %n Reduce quantity of locations or quantity of products for update/delete for request: %n", locationsCounter, quantityForUpdate, request.getLocations());
@@ -407,28 +408,6 @@ public class VdiProductGenerateService {
         }
         return chosenOrg;
     }
-//    METHOD actual for randomly chosen operators
-//    private void isValid(TestFormData request, List<OrgEntity> orgEntities) {
-//        if (request.getOperators() <= 0) throw new ValidationException("Operators must contain value >0");
-//        if (request.getLocations() <= 0) throw new ValidationException("Locations must contain value >0");
-//        if (request.getNewProducts() > 5000) throw new ValidationException("Too many products to create");
-//        if (request.getProductsToUpdate() <= 0 && request.getProductsToDelete() <= 0 && request.getNewProducts() <= 0)
-//            throw new ValidationException("There are no data to modify");
-//
-//        if (request.getOperators() > orgEntities.size())
-//            throw new ValidationException(String.format("Too many operators. Available %s, requested %s", orgEntities.size(), request.getOperators()));
-//
-//
-//        if (request.getNewProducts() > 0) {
-//            int totalProducts = orgEntities.stream()
-//                    .flatMap(org -> org.getLocations().stream())
-//                    .mapToInt(loc -> loc.getProductIds().size())
-//                    .sum();
-//            log.info("Products in storage: " + totalProducts);
-//            if (totalProducts > 300000)
-//                throw new ValidationException("New products creation restriction. Too many existing products [" + totalProducts + "]. Use 'newProducts' as 0 , and try again");
-//        }
-//    }
 
     private boolean forUpdate(TestFormData testFormData) {
         return testFormData.getProductsToUpdate() + testFormData.getProductsToDelete() > 0;
