@@ -46,5 +46,7 @@ public class VdiProductEntity {
     }
 
     @Override
-    public int hashCode() {return Objects.hash(userkey);}
+    public int hashCode() {
+        return Objects.hash(userkey);
+    }
 }

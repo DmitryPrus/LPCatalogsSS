@@ -58,13 +58,14 @@ public class LambdaController implements RequestHandler<APIGatewayProxyRequestEv
             var testFormData = mapper.readValue(event.getBody(), new TypeReference<List<TestFormData>>() {
             });
 
-            for (var f : testFormData){
+            for (var f : testFormData) {
                 var validationMessage = requestInvalidMessage(f);
-                if (!StringUtils.isNullOrEmpty(validationMessage)) return "Validation error. " + validationMessage + " for request: "+f;
+                if (!StringUtils.isNullOrEmpty(validationMessage))
+                    return "Validation error. " + validationMessage + " for request: " + f;
             }
 
             runTestService = new RunTestService(destinationUrl, testFormData.get(0).getAuthToken(), threadsQuantity);
-            return  runTestService.runTestSpringController(testFormData);
+            return runTestService.runTestSpringController(testFormData);
         } catch (JsonProcessingException e) {
             return "Error. " + e.getMessage();
         }

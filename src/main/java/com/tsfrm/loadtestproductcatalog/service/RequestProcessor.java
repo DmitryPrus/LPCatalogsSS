@@ -43,7 +43,7 @@ public class RequestProcessor implements Runnable {
             var json = objectMapper.writeValueAsString(message);
             var httpClient = HttpClient.newHttpClient();
             var request = HttpRequest.newBuilder()
-                    .uri(URI.create(url + "/"+ requestIdPrefix + number))
+                    .uri(URI.create(url + "/" + requestIdPrefix + number))
                     .header("Content-Type", "application/json")
                     .header("Authorization", "Bearer " + authUrlToken)
                     .POST(HttpRequest.BodyPublishers.ofString(json))
