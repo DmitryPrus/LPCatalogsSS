@@ -61,12 +61,13 @@ public class VdiProductGenerateService {
             if (locationsHandled >= request.getLocations()) break;
             var productIds = new ArrayList<>(location.getProductIds());
             Collections.shuffle(productIds);
+            var catalogType = generateCatalogType(request);
             var productsToRemove = removeProducts(request.getProductsToDelete(), productIds);
             productIds.removeAll(productsToRemove.stream().map(VdiProductsRemove::getProductId).toList());
             var productsToCreate = generateProduct(request.getNewProducts());
             var productsToUpdate = updateProducts(request.getProductsToUpdate(), productIds);
             productsToUpdate.addAll(productsToCreate);
-            marketProductList.add(new VdiMarketProduct(location.getLocationUserKey(), generateCatalogType(), productsToRemove, productsToUpdate));
+            marketProductList.add(new VdiMarketProduct(location.getLocationUserKey(), catalogType, productsToRemove, productsToUpdate));
 
             //delete from productLocationMap (needed for transactions)
             jsonStorageRepository.getOrgLocProductMap()
@@ -76,6 +77,15 @@ public class VdiProductGenerateService {
                             productsToRemove.stream()
                                     .anyMatch(deleteProd -> deleteProd.getProductId().equals(productEntity.getUserkey()))
                     );
+
+            // Full mode make replacement for all related products
+            // we delete all records about products and write them as newly created below
+            if (catalogType == VdiCatalogType.FULL) {
+                jsonStorageRepository.getOrgLocProductMap()
+                        .get(orgEntity.getOrg())
+                        .get(location.getLocationId())
+                        .clear();
+            }
 
             // update products in productLocationMap
             var allProductIds = jsonStorageRepository.getOrgLocProductMap()
@@ -118,8 +128,13 @@ public class VdiProductGenerateService {
     }
 
 
-    public VdiCatalogType generateCatalogType() {
-        return random.nextBoolean() ? VdiCatalogType.FULL : VdiCatalogType.PARTIAL;
+    /**
+     * Removal does not work for VDI 2 , and if we set into field 'productsToDelete' > 0
+     * we use Full mode to really remove it
+     */
+    public VdiCatalogType generateCatalogType(TestFormData request) {
+        return request.getProductsToDelete() > 0 ? VdiCatalogType.FULL
+                : random.nextBoolean() ? VdiCatalogType.FULL : VdiCatalogType.PARTIAL;
     }
 
 
@@ -191,7 +206,7 @@ public class VdiProductGenerateService {
         var resultList = new ArrayList<VdiProduct>(numberToCreate);
         for (int i = 0; i < numberToCreate; i++) {
             var rawProduct = UtilProductGeneration.PRODUCT_RAW_LIST.get(random.nextInt(UtilProductGeneration.PRODUCT_RAW_LIST.size()));
-            var productId = "LP_Catalog_ID-"+UUID.randomUUID().toString().replaceAll("-", "").substring(0,20);
+            var productId = "LPCatalogID" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 20);
 
             var cost = generateNumberValue(1, 10);
             var resultProudct = VdiProduct.builder()
@@ -227,8 +242,8 @@ public class VdiProductGenerateService {
     }
 
     private VdiBarCode generateBarCode() {
-        var barcode = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16);
-        return new VdiBarCode("LP_Catalog_Bar" + barcode);
+        var barcode = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 11);
+        return new VdiBarCode("LPBar" + barcode);
     }
 
     private VdiProductAttribute generateAttributes() {
