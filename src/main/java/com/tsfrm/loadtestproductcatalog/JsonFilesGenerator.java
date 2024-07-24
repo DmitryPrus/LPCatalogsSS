@@ -5,6 +5,7 @@ import com.tsfrm.loadtestproductcatalog.domain.entity.OrgEntity;
 import com.tsfrm.loadtestproductcatalog.domain.entity.VdiProductEntity;
 import com.tsfrm.loadtestproductcatalog.repository.JdbcConfig;
 import com.tsfrm.loadtestproductcatalog.repository.JsonStorageRepository;
+import com.tsfrm.loadtestproductcatalog.service.Const;
 import com.tsfrm.loadtestproductcatalog.service.RunTestService;
 
 import java.sql.*;
@@ -80,7 +81,7 @@ public class JsonFilesGenerator {
                           AND vp.NAME = '%s'
                         limit 200;
                         """,
-                "CatalogProvider"
+                Const.HEADER_PROVIDER_NAME
         );
 
         try (
@@ -103,7 +104,7 @@ public class JsonFilesGenerator {
         var orgIds = orgs.stream().map(OrgEntity::getOrg).toList();
         if (orgIds.isEmpty()) throw new RuntimeException("There are no organizations for VDI2 in database");
 
-        var vdiEnableLocations = """
+        var vdiEnableLocations = String.format("""
                 SELECT l.id  , vl.USERKEY
                                           FROM vdiuserkey vl
                                                    INNER JOIN vdiproviderinfo vp ON vl.vdiprovider = vp.id
@@ -112,9 +113,10 @@ public class JsonFilesGenerator {
                                           WHERE c.type = 'VDIENABLE'
                                             AND c.value = 'Y'
                                             AND c.cfgtype = 'LOC'
-                                            AND vp.name = 'CatalogProvider'
+                                            AND vp.name = '%s'
                                             AND l.org = ?;
-                """;
+                """, Const.HEADER_PROVIDER_NAME
+        );
 
         System.out.println("SQL Query: " + vdiEnableLocations);
         try (
