@@ -297,7 +297,7 @@ public class VdiProductGenerateService {
                     .mapToInt(loc -> loc.getProductIds().size())
                     .sum();
             log.info("Products in storage: " + totalProducts);
-            if (totalProducts > 300000)
+            if (totalProducts > 500000)
                 throw new ValidationException("New products creation restriction. Too many existing products [" + totalProducts + "]. Use 'newProducts' as 0 , and try again");
         }
 

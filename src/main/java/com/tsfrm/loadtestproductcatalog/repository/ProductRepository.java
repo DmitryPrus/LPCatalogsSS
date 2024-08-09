@@ -26,7 +26,7 @@ public class ProductRepository extends BaseRepository<VdiProductEntity> {
     }
 
     public List<VdiProductEntity> findAllByIds(List<String> ids) {
-        var productIdsMap = new HashMap<String, VdiProductEntity>(20000);
+        var productIdsMap = new HashMap<String, VdiProductEntity>(50000);
         jsonStorageRepository.getOrgLocProductMap().values().stream()
                 .flatMap(locProductMap -> locProductMap.values().stream())
                 .flatMap(Set::stream)

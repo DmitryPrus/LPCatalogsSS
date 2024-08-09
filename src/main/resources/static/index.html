@@ -87,7 +87,31 @@
     <tr>
         <td>
             <select class="operatorId">
-                <option value="1cf4db4310c8cb81f47652f723dd7fac" data-name="VDI_Catalog_Staging_v1">VDI_Catalog_Staging_v1</option>
+                <option value="019136659d05766fb0ab5c6242d1af42" data-name="VDI_Stag_v3_ImpCat_v1">VDI_Stag_v3_ImpCat_v1</option>
+                <option value="01913665d5e47e84bb781c71489cd259" data-name="VDI_Stag_v3_ImpCat_v2">VDI_Stag_v3_ImpCat_v2</option>
+                <option value="01913667ee2c710eab32c117ae180a4a" data-name="VDI_Stag_v3_ImpCat_v3">VDI_Stag_v3_ImpCat_v3</option>
+                <option value="0191366826d9730eae97f3e5bae18440" data-name="VDI_Stag_v3_ImpCat_v4">VDI_Stag_v3_ImpCat_v4</option>
+                <option value="019136685ce77d78975229857ddbbc4a" data-name="VDI_Stag_v3_ImpCat_v5">VDI_Stag_v3_ImpCat_v5</option>
+                <option value="019136688e5c7f368738a89c53e78c86" data-name="VDI_Stag_v3_ImpCat_v6">VDI_Stag_v3_ImpCat_v6</option>
+                <option value="01913668bcbd776ba69608d645ec8135" data-name="VDI_Stag_v3_ImpCat_v7">VDI_Stag_v3_ImpCat_v7</option>
+                <option value="01913668ebb873f48e3aeac10ff7f2ae" data-name="VDI_Stag_v3_ImpCat_v8">VDI_Stag_v3_ImpCat_v8</option>
+                <option value="019136691b8d70f39311c946559e26cc" data-name="VDI_Stag_v3_ImpCat_v9">VDI_Stag_v3_ImpCat_v9</option>
+                <option value="0191366949947e30a4053ed50ed57853" data-name="VDI_Stag_v3_ImpCat_v10">VDI_Stag_v3_ImpCat_v10</option>
+                <option value="0191366976277cb2a1674d919eb4c00f" data-name="VDI_Stag_v3_ImpCat_v11">VDI_Stag_v3_ImpCat_v11</option>
+                <option value="01913669a47b7e31b82c8b0d5c4c902f" data-name="VDI_Stag_v3_ImpCat_v12">VDI_Stag_v3_ImpCat_v12</option>
+                <option value="01913669d1c578f5bf505522ca071f29" data-name="VDI_Stag_v3_ImpCat_v13">VDI_Stag_v3_ImpCat_v13</option>
+                <option value="01913669ffef750986102678f4bd31fd" data-name="VDI_Stag_v3_ImpCat_v14">VDI_Stag_v3_ImpCat_v14</option>
+                <option value="0191366a2e537c368024e4a9ac46090f" data-name="VDI_Stag_v3_ImpCat_v15">VDI_Stag_v3_ImpCat_v15</option>
+                <option value="0191366a5fc27946a5c8b9885d383e31" data-name="VDI_Stag_v3_ImpCat_v16">VDI_Stag_v3_ImpCat_v16</option>
+                <option value="0191366a8f1374fe9e12d6393b5e36c0" data-name="VDI_Stag_v3_ImpCat_v17">VDI_Stag_v3_ImpCat_v17</option>
+                <option value="0191366abd7074eeac7778fe9e070f5e" data-name="VDI_Stag_v3_ImpCat_v18">VDI_Stag_v3_ImpCat_v18</option>
+                <option value="0191366aeb857e55b6cd8ec3a35c0d0f" data-name="VDI_Stag_v3_ImpCat_v19">VDI_Stag_v3_ImpCat_v19</option>
+                <option value="0191366b1a4d7eefa31d51daa3612521" data-name="VDI_Stag_v3_ImpCat_v20">VDI_Stag_v3_ImpCat_v20</option>
+                <option value="0191366b48237936a1cc682b7a7fc295" data-name="VDI_Stag_v3_ImpCat_v21">VDI_Stag_v3_ImpCat_v21</option>
+                <option value="0191366b79a9703f9f0c2efe4ca7d7e0" data-name="VDI_Stag_v3_ImpCat_v22">VDI_Stag_v3_ImpCat_v22</option>
+                <option value="0191366ba8df7f6ab724012e59a8ebbb" data-name="VDI_Stag_v3_ImpCat_v23">VDI_Stag_v3_ImpCat_v23</option>
+                <option value="0191366bd6f479de9169c818cd4873f1" data-name="VDI_Stag_v3_ImpCat_v24">VDI_Stag_v3_ImpCat_v24</option>
+                <option value="0191366c053773fe97baaab4ed76eeed" data-name="VDI_Stag_v3_ImpCat_v25">VDI_Stag_v3_ImpCat_v25</option>
             </select>
         </td>
         <td><input type="number" class="locations" placeholder="number of locations"></td>
@@ -96,6 +120,7 @@
         <td><input type="number" class="productsToUpdate" placeholder="number of products to update"></td>
         <td><button class="close-button" onclick="removeRow(this)">х</button></td>
     </tr>
+
     </tbody>
 </table>
 <div>
@@ -160,15 +185,39 @@
 
         newRow.innerHTML = `
                 <td>
-                    <select class="operatorId">
-                        <option value="1cf4db4310c8cb81f47652f723dd7fac" data-name="VDI_Catalog_Staging_v1">VDI_Catalog_Staging_v1</option>
-                    </select>
-                </td>
-                <td><input type="number" class="locations" placeholder="number of locations"></td>
-                <td><input type="number" class="newProducts" placeholder="number of new products"></td>
-                <td><input type="number" class="productsToDelete" placeholder="number of products to delete"></td>
-                <td><input type="number" class="productsToUpdate" placeholder="number of products to update"></td>
-                <td><button class="close-button" onclick="removeRow(this)">х</button></td>
+            <select class="operatorId">
+                <option value="019136659d05766fb0ab5c6242d1af42" data-name="VDI_Stag_v3_ImpCat_v1">VDI_Stag_v3_ImpCat_v1</option>
+                <option value="01913665d5e47e84bb781c71489cd259" data-name="VDI_Stag_v3_ImpCat_v2">VDI_Stag_v3_ImpCat_v2</option>
+                <option value="01913667ee2c710eab32c117ae180a4a" data-name="VDI_Stag_v3_ImpCat_v3">VDI_Stag_v3_ImpCat_v3</option>
+                <option value="0191366826d9730eae97f3e5bae18440" data-name="VDI_Stag_v3_ImpCat_v4">VDI_Stag_v3_ImpCat_v4</option>
+                <option value="019136685ce77d78975229857ddbbc4a" data-name="VDI_Stag_v3_ImpCat_v5">VDI_Stag_v3_ImpCat_v5</option>
+                <option value="019136688e5c7f368738a89c53e78c86" data-name="VDI_Stag_v3_ImpCat_v6">VDI_Stag_v3_ImpCat_v6</option>
+                <option value="01913668bcbd776ba69608d645ec8135" data-name="VDI_Stag_v3_ImpCat_v7">VDI_Stag_v3_ImpCat_v7</option>
+                <option value="01913668ebb873f48e3aeac10ff7f2ae" data-name="VDI_Stag_v3_ImpCat_v8">VDI_Stag_v3_ImpCat_v8</option>
+                <option value="019136691b8d70f39311c946559e26cc" data-name="VDI_Stag_v3_ImpCat_v9">VDI_Stag_v3_ImpCat_v9</option>
+                <option value="0191366949947e30a4053ed50ed57853" data-name="VDI_Stag_v3_ImpCat_v10">VDI_Stag_v3_ImpCat_v10</option>
+                <option value="0191366976277cb2a1674d919eb4c00f" data-name="VDI_Stag_v3_ImpCat_v11">VDI_Stag_v3_ImpCat_v11</option>
+                <option value="01913669a47b7e31b82c8b0d5c4c902f" data-name="VDI_Stag_v3_ImpCat_v12">VDI_Stag_v3_ImpCat_v12</option>
+                <option value="01913669d1c578f5bf505522ca071f29" data-name="VDI_Stag_v3_ImpCat_v13">VDI_Stag_v3_ImpCat_v13</option>
+                <option value="01913669ffef750986102678f4bd31fd" data-name="VDI_Stag_v3_ImpCat_v14">VDI_Stag_v3_ImpCat_v14</option>
+                <option value="0191366a2e537c368024e4a9ac46090f" data-name="VDI_Stag_v3_ImpCat_v15">VDI_Stag_v3_ImpCat_v15</option>
+                <option value="0191366a5fc27946a5c8b9885d383e31" data-name="VDI_Stag_v3_ImpCat_v16">VDI_Stag_v3_ImpCat_v16</option>
+                <option value="0191366a8f1374fe9e12d6393b5e36c0" data-name="VDI_Stag_v3_ImpCat_v17">VDI_Stag_v3_ImpCat_v17</option>
+                <option value="0191366abd7074eeac7778fe9e070f5e" data-name="VDI_Stag_v3_ImpCat_v18">VDI_Stag_v3_ImpCat_v18</option>
+                <option value="0191366aeb857e55b6cd8ec3a35c0d0f" data-name="VDI_Stag_v3_ImpCat_v19">VDI_Stag_v3_ImpCat_v19</option>
+                <option value="0191366b1a4d7eefa31d51daa3612521" data-name="VDI_Stag_v3_ImpCat_v20">VDI_Stag_v3_ImpCat_v20</option>
+                <option value="0191366b48237936a1cc682b7a7fc295" data-name="VDI_Stag_v3_ImpCat_v21">VDI_Stag_v3_ImpCat_v21</option>
+                <option value="0191366b79a9703f9f0c2efe4ca7d7e0" data-name="VDI_Stag_v3_ImpCat_v22">VDI_Stag_v3_ImpCat_v22</option>
+                <option value="0191366ba8df7f6ab724012e59a8ebbb" data-name="VDI_Stag_v3_ImpCat_v23">VDI_Stag_v3_ImpCat_v23</option>
+                <option value="0191366bd6f479de9169c818cd4873f1" data-name="VDI_Stag_v3_ImpCat_v24">VDI_Stag_v3_ImpCat_v24</option>
+                <option value="0191366c053773fe97baaab4ed76eeed" data-name="VDI_Stag_v3_ImpCat_v25">VDI_Stag_v3_ImpCat_v25</option>
+            </select>
+        </td>
+        <td><input type="number" class="locations" placeholder="number of locations"></td>
+        <td><input type="number" class="newProducts" placeholder="number of new products"></td>
+        <td><input type="number" class="productsToDelete" placeholder="number of products to delete"></td>
+        <td><input type="number" class="productsToUpdate" placeholder="number of products to update"></td>
+        <td><button class="close-button" onclick="removeRow(this)">х</button></td>
             `;
 
         newRow.querySelector(".operatorId").addEventListener("change", handleOperatorIdChange);
@@ -220,7 +269,7 @@
         // https://kat5t5o289.execute-api.eu-north-1.amazonaws.com/staging/lpc-staging
         // local
         // http://localhost:8012/runtest
-        xhr.open("POST", "http://localhost:8012/runtest", true);
+        xhr.open("POST", "https://kat5t5o289.execute-api.eu-north-1.amazonaws.com/staging/lpc-staging", true);
         xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 
         xhr.onload = function() {
